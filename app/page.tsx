@@ -19,7 +19,7 @@ import { cn } from "@/lib/utils"
 import Column from "@/components/Column"
 import TaskCard from "@/components/TaskCard"
 import NotificationBell from "@/components/NotificationBell"
-import { loadTasks, saveTasks, isOverdue, type Task } from "@/lib/tasks"
+import { loadTasks, isOverdue, type Task } from "@/lib/tasks"
 import type { Owner, Status } from "@/lib/supabase"
 
 type FilterStatus = "all" | Status
