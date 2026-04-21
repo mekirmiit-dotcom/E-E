@@ -33,7 +33,7 @@ export default function DashboardPage() {
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
-    setTasks(loadTasks())
+    loadTasks().then(setTasks)
     setMounted(true)
   }, [])
 
