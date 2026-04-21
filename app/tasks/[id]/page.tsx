@@ -82,7 +82,7 @@ export default function TaskDetailPage({ params }: { params: { id: string } }) {
     })
     setSaving(false)
     if (updated) {
-      setTask(updated)
+
       setEditing(false)
     }
   }
