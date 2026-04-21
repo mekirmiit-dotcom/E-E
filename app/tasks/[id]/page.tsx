@@ -80,9 +80,7 @@ export default function TaskDetailPage({ params }: { params: { id: string } }) {
       due_date: dueDate || null,
       tags, checklist,
     })
-    setSaving(false)
-    if (updated) {
-      setEditing(false)
+    setEditing(false)
     }
   }
 
