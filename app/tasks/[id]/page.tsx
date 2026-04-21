@@ -44,13 +44,14 @@ export default function TaskDetailPage({ params }: { params: { id: string } }) {
   const [checklist, setChecklist] = useState<ChecklistItem[]>([])
 
   useEffect(() => {
-    const t = await getTask(params.id)
-    if (!t) {
-      router.push("/")
-      return
-    }
-    setTask(t)
-    resetForm(t)
+    getTask(params.id).then((t) => {
+      if (!t) {
+        router.push("/")
+        return
+      }
+      setTask(t)
+      resetForm(t)
+    })
   }, [params.id])
 
   function resetForm(t: Task) {
