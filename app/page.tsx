@@ -100,12 +100,12 @@ export default function DashboardPage() {
       const rest = updatedTasks.filter((t) => t.owner !== overOwner)
       const final = [...rest, ...reordered]
       setTasks(final)
-      saveTasks(final)
+      
       return
     }
 
     setTasks(updatedTasks)
-    saveTasks(updatedTasks)
+    
   }
 
   // Stats
