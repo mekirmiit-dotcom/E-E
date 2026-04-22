@@ -29,12 +29,13 @@ export async function createNotification(
   message: string,
   type: Notification["type"]
 ): Promise<void> {
-  await supabase.from("notifications").insert({
+  const { error } = await supabase.from("notifications").insert({
     task_id: taskId,
     message,
     type,
     read: false,
   })
+  if (error) console.error("[createNotification] error:", error)
 }
 
 export function requestPushPermission(): Promise<boolean> {

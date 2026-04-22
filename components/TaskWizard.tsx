@@ -106,7 +106,9 @@ export default function TaskWizard({ defaultOwner }: TaskWizardProps) {
       checklist: data.checklist,
       order_index: 999,
     })
-    if (task) {
+    if (!task) {
+      console.error("[TaskWizard] createTask failed, no task returned")
+    } else {
       if (task.owner !== "shared") {
         await createNotification(task.id, `"${task.title}" görevi ${OWNER_LABELS[task.owner]}'e atandı`, "assigned")
       }
@@ -122,6 +124,7 @@ export default function TaskWizard({ defaultOwner }: TaskWizardProps) {
       }
     }
     setSaving(false)
+
     router.push("/")
   }
 

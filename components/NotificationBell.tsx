@@ -32,7 +32,8 @@ export default function NotificationBell() {
         .order("created_at", { ascending: false })
         .limit(20)
 
-      if (!error && data) setNotifs(data)
+      if (error) console.error("[NotificationBell] fetch error:", error)
+      else if (data) setNotifs(data)
     }
 
     fetchNotifs()
