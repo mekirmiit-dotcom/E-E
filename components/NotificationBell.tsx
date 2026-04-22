@@ -7,22 +7,8 @@ import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { formatDistanceToNow } from "date-fns"
 import { tr } from "date-fns/locale"
-
-type MockNotification = {
-  id: string
-  message: string
-  type: "reminder" | "overdue" | "completed" | "assigned"
-  read: boolean
-  created_at: string
-  task_id: string
-}
-
-const MOCK_NOTIFS: MockNotification[] = [
-  { id: "n1", message: "\"API endpoint'leri yaz\" görevi yarın teslim!", type: "reminder", read: false, created_at: new Date(Date.now() - 1000 * 60 * 30).toISOString(), task_id: "2" },
-  { id: "n2", message: "\"Landing page tasarımı\" Emre tarafından incelemeye alındı", type: "assigned", read: false, created_at: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(), task_id: "1" },
-  { id: "n3", message: "\"Database şeması\" tamamlandı 🎉", type: "completed", read: true, created_at: new Date(Date.now() - 1000 * 60 * 60 * 5).toISOString(), task_id: "3" },
-  { id: "n4", message: "\"Mobil görünüm\" görevi gecikti!", type: "overdue", read: true, created_at: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(), task_id: "5" },
-]
+import { supabase, type Notification } from "@/lib/supabase"
+import { markNotificationRead, markAllNotificationsRead } from "@/lib/notifications"
 
 const typeConfig = {
   reminder: { icon: "⏰", color: "text-amber-600 bg-amber-50" },
@@ -33,23 +19,73 @@ const typeConfig = {
 
 export default function NotificationBell() {
   const [open, setOpen] = useState(false)
-  const [notifs, setNotifs] = useState<MockNotification[]>(MOCK_NOTIFS)
+  const [notifs, setNotifs] = useState<Notification[]>([])
 
   const unread = notifs.filter((n) => !n.read).length
 
-  function markRead(id: string) {
+  // İlk yüklemede bildirimleri çek
+  useEffect(() => {
+    async function fetchNotifs() {
+      const { data, error } = await supabase
+        .from("notifications")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(20)
+
+      if (!error && data) setNotifs(data)
+    }
+
+    fetchNotifs()
+
+    // Realtime: yeni bildirim eklenince veya güncellenince listeyi yenile
+    const channel = supabase
+      .channel("notifications-realtime")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "notifications" },
+        (payload) => {
+          setNotifs((prev) => [payload.new as Notification, ...prev])
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "notifications" },
+        (payload) => {
+          setNotifs((prev) =>
+            prev.map((n) => (n.id === payload.new.id ? (payload.new as Notification) : n))
+          )
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "DELETE", schema: "public", table: "notifications" },
+        (payload) => {
+          setNotifs((prev) => prev.filter((n) => n.id !== payload.old.id))
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [])
+
+  async function handleMarkRead(id: string) {
     setNotifs((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)))
+    await markNotificationRead(id)
   }
 
-  function markAllRead() {
+  async function handleMarkAllRead() {
     setNotifs((prev) => prev.map((n) => ({ ...n, read: true })))
+    await markAllNotificationsRead()
   }
 
   function dismiss(id: string) {
     setNotifs((prev) => prev.filter((n) => n.id !== id))
+    supabase.from("notifications").delete().eq("id", id)
   }
 
-  // Close on outside click
+  // Dışarı tıklanınca kapat
   useEffect(() => {
     if (!open) return
     const handler = (e: MouseEvent) => {
@@ -89,7 +125,7 @@ export default function NotificationBell() {
             </div>
             {unread > 0 && (
               <button
-                onClick={markAllRead}
+                onClick={handleMarkAllRead}
                 className="flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-800 font-medium transition-colors"
               >
                 <CheckCheck className="h-3 w-3" />
@@ -129,7 +165,7 @@ export default function NotificationBell() {
                     </div>
                     <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
                       {!notif.read && (
-                        <button onClick={() => markRead(notif.id)} title="Okundu" className="text-indigo-400 hover:text-indigo-600 transition-colors">
+                        <button onClick={() => handleMarkRead(notif.id)} title="Okundu" className="text-indigo-400 hover:text-indigo-600 transition-colors">
                           <Check className="h-3.5 w-3.5" />
                         </button>
                       )}
