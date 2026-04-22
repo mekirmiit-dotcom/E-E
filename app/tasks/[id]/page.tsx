@@ -22,6 +22,7 @@ import {
   isOverdue, isDueSoon,
 } from "@/lib/tasks"
 import type { Task, Owner, Priority, Status, ChecklistItem } from "@/lib/supabase"
+import { createNotification } from "@/lib/notifications"
 
 export default function TaskDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter()
@@ -80,6 +81,15 @@ export default function TaskDetailPage({ params }: { params: { id: string } }) {
     })
     setSaving(false)
     if (updated) {
+      if (status === "done" && task.status !== "done") {
+        await createNotification(task.id, `"${title}" tamamlandı 🎉`, "completed")
+      }
+      if (status === "review" && task.status !== "review") {
+        await createNotification(task.id, `"${title}" incelemeye alındı`, "assigned")
+      }
+      if (owner !== task.owner && owner !== "shared") {
+        await createNotification(task.id, `"${title}" ${OWNER_LABELS[owner]}'e atandı`, "assigned")
+      }
       setTask(updated)
       setEditing(false)
     }

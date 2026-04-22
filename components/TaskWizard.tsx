@@ -8,8 +8,11 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { cn } from "@/lib/utils"
-import { createTask, PRIORITY_LABELS, STATUS_LABELS } from "@/lib/tasks"
+import { createTask, PRIORITY_LABELS, STATUS_LABELS, OWNER_LABELS } from "@/lib/tasks"
 import type { Owner, Priority, Status, ChecklistItem } from "@/lib/supabase"
+import { createNotification } from "@/lib/notifications"
+import { format, parseISO } from "date-fns"
+import { tr } from "date-fns/locale"
 
 const STEPS = [
   { id: 1, title: "Temel Bilgiler", icon: "📝", desc: "Görev adı ve açıklaması" },
@@ -92,8 +95,7 @@ export default function TaskWizard({ defaultOwner }: TaskWizardProps) {
 
   async function handleSave() {
     setSaving(true)
-    await new Promise((r) => setTimeout(r, 600)) // Simulate async
-    createTask({
+    const task = await createTask({
       title: data.title.trim(),
       description: data.description.trim() || null,
       owner: data.owner,
@@ -104,6 +106,21 @@ export default function TaskWizard({ defaultOwner }: TaskWizardProps) {
       checklist: data.checklist,
       order_index: 999,
     })
+    if (task) {
+      if (task.owner !== "shared") {
+        await createNotification(task.id, `"${task.title}" görevi ${OWNER_LABELS[task.owner]}'e atandı`, "assigned")
+      }
+      if (task.due_date) {
+        await createNotification(
+          task.id,
+          `"${task.title}" görevi ${format(parseISO(task.due_date), "d MMM yyyy", { locale: tr })} tarihinde teslim edilmeli`,
+          "reminder"
+        )
+      }
+      if (task.status === "done") {
+        await createNotification(task.id, `"${task.title}" tamamlandı 🎉`, "completed")
+      }
+    }
     setSaving(false)
     router.push("/")
   }
