@@ -31,7 +31,7 @@ import Column from "@/components/Column"
 import TaskCard from "@/components/TaskCard"
 import NotificationBell from "@/components/NotificationBell"
 import { loadTasks, isOverdue, type Task } from "@/lib/tasks"
-import type { Owner, Status } from "@/lib/supabase"
+import { supabase, type Owner, type Status } from "@/lib/supabase"
 
 type FilterStatus = "all" | Status
 
@@ -48,6 +48,18 @@ export default function DashboardPage() {
       setTasks(data)
       setMounted(true)
     })
+
+    const channel = supabase
+      .channel("tasks-realtime")
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "tasks" },
+        (payload) => setTasks((prev) => [...prev, payload.new as Task]))
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "tasks" },
+        (payload) => setTasks((prev) => prev.map((t) => t.id === (payload.new as Task).id ? payload.new as Task : t)))
+      .on("postgres_changes", { event: "DELETE", schema: "public", table: "tasks" },
+        (payload) => setTasks((prev) => prev.filter((t) => t.id !== (payload.old as { id: string }).id)))
+      .subscribe()
+
+    return () => { supabase.removeChannel(channel) }
   }, [])
 
   const sensors = useSensors(

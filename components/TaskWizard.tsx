@@ -116,7 +116,6 @@ export default function TaskWizard({ defaultOwner }: TaskWizardProps) {
       tags: data.tags,
       checklist: data.checklist,
       order_index: 999,
-      notes: null,
     })
     if (!task) {
       console.error("[TaskWizard] createTask failed")

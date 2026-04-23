@@ -16,7 +16,7 @@ import {
   loadTasks, isOverdue, PRIORITY_COLORS, PRIORITY_LABELS, STATUS_LABELS,
   type Task,
 } from "@/lib/tasks"
-import type { Status } from "@/lib/supabase"
+import { supabase, type Status } from "@/lib/supabase"
 
 type FilterStatus = "all" | Status
 
@@ -38,6 +38,22 @@ export default function EmrePage() {
       setTasks(all.filter((t) => t.owner === "emre"))
       setMounted(true)
     })
+
+    const channel = supabase
+      .channel("emre-tasks-realtime")
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "tasks" },
+        (payload) => { if ((payload.new as Task).owner === "emre") setTasks((prev) => [...prev, payload.new as Task]) })
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "tasks" },
+        (payload) => setTasks((prev) => {
+          const updated = payload.new as Task
+          if (updated.owner !== "emre") return prev.filter((t) => t.id !== updated.id)
+          return prev.map((t) => t.id === updated.id ? updated : t)
+        }))
+      .on("postgres_changes", { event: "DELETE", schema: "public", table: "tasks" },
+        (payload) => setTasks((prev) => prev.filter((t) => t.id !== (payload.old as { id: string }).id)))
+      .subscribe()
+
+    return () => { supabase.removeChannel(channel) }
   }, [])
 
   if (!mounted) return null
