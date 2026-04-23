@@ -1,0 +1,31 @@
+{
+  "name": "İş Takibi — Emin & Emre",
+  "short_name": "İş Takibi",
+  "description": "Emin ve Emre için kişisel iş ve görev takip uygulaması",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8f9fc",
+  "theme_color": "#6366f1",
+  "orientation": "portrait-primary",
+  "categories": ["productivity", "business"],
+  "icons": [
+    {
+      "src": "/icon-pwa?size=192",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-pwa?size=512",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-pwa?size=512",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

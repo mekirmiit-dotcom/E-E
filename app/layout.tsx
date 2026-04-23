@@ -3,12 +3,24 @@ import "./globals.css"
 
 export const metadata: Metadata = {
   title: "İş Takibi — Emin & Emre",
-  description: "Kişisel iş ve görev takip uygulaması",
+  description: "Emin ve Emre için kişisel iş ve görev takip uygulaması",
   manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "İş Takibi",
+  },
 }
 
 export const viewport: Viewport = {
-  themeColor: "#6366f1",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#6366f1" },
+    { media: "(prefers-color-scheme: dark)", color: "#4f46e5" },
+  ],
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
