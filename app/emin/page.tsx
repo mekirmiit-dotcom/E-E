@@ -157,7 +157,7 @@ export default function EminPage() {
                 <stat.icon className="h-4 w-4" />
               </div>
               <div>
-                <p className="font-display font-bold text-xl text-slate-900 leading-none">{stat.value}</p>
+                <p className="font-display font-bold text-xl text-slate-900 dark:text-slate-100 leading-none">{stat.value}</p>
                 <p className="text-[11px] text-muted-foreground font-body mt-0.5">{stat.label}</p>
               </div>
             </div>

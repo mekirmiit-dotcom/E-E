@@ -296,8 +296,8 @@ export default function DashboardPage() {
                 <stat.icon className={cn("h-4 w-4", stat.color)} />
               </div>
               <div className="min-w-0">
-                <p className="font-display font-bold text-2xl text-slate-900 leading-none tabular-nums">{stat.value}</p>
-                <p className="text-[11px] text-slate-500 font-medium mt-1">{stat.label}</p>
+                <p className="font-display font-bold text-2xl text-slate-900 dark:text-slate-100 leading-none tabular-nums">{stat.value}</p>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium mt-1">{stat.label}</p>
               </div>
               {stat.trend === "alert" && (
                 <span className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
