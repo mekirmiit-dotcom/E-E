@@ -80,19 +80,50 @@ export default function TaskDetailPage({ params }: { params: { id: string } }) {
       tags, checklist,
     })
     setSaving(false)
-    if (updated) {
-      if (status === "done" && task.status !== "done") {
+    if (!updated) return
+
+    // Status değişiklikleri
+    if (status !== task.status) {
+      if (status === "done") {
         await createNotification(task.id, `"${title}" tamamlandı 🎉`, "completed")
+      } else if (status === "in_progress") {
+        await createNotification(task.id, `"${title}" başladı 🚀`, "assigned")
+      } else if (status === "review") {
+        await createNotification(task.id, `"${title}" incelemeye alındı 🔍`, "assigned")
+      } else if (status === "todo") {
+        await createNotification(task.id, `"${title}" beklemeye alındı`, "assigned")
       }
-      if (status === "review" && task.status !== "review") {
-        await createNotification(task.id, `"${title}" incelemeye alındı`, "assigned")
-      }
-      if (owner !== task.owner && owner !== "shared") {
-        await createNotification(task.id, `"${title}" ${OWNER_LABELS[owner]}'e atandı`, "assigned")
-      }
-      setTask(updated)
-      setEditing(false)
     }
+
+    // Sahip değişikliği
+    if (owner !== task.owner) {
+      const ownerMsg = owner === "shared"
+        ? `"${title}" ortak göreve dönüştürüldü`
+        : `"${title}" ${OWNER_LABELS[owner]}'e atandı`
+      await createNotification(task.id, ownerMsg, "assigned")
+    }
+
+    // Öncelik değişikliği
+    if (priority !== task.priority) {
+      const pLabel: Record<string, string> = { low: "Düşük", medium: "Orta", high: "Yüksek", critical: "Kritik" }
+      await createNotification(task.id, `"${title}" önceliği ${pLabel[priority]} olarak güncellendi`, "reminder")
+    }
+
+    // Son tarih değişikliği
+    if (dueDate !== (task.due_date || "")) {
+      const msg = dueDate
+        ? `"${title}" son tarihi ${dueDate} olarak ayarlandı ⏰`
+        : `"${title}" son tarihi kaldırıldı`
+      await createNotification(task.id, msg, "reminder")
+    }
+
+    // Başlık değişikliği
+    if (title !== task.title) {
+      await createNotification(task.id, `Görev adı "${task.title}" → "${title}" olarak güncellendi`, "assigned")
+    }
+
+    setTask(updated)
+    setEditing(false)
   }
 
   async function handleDelete() {
@@ -102,11 +133,24 @@ export default function TaskDetailPage({ params }: { params: { id: string } }) {
   }
 
   async function toggleCheckItem(id: string) {
+    const item = checklist.find((c) => c.id === id)
     const updated = checklist.map((c) => c.id === id ? { ...c, done: !c.done } : c)
     setChecklist(updated)
     if (!editing) {
       const result = await updateTask(params.id, { checklist: updated })
-      if (result) setTask(result)
+      if (result) {
+        setTask(result)
+        // Sadece işaretlendiğinde bildirim gönder, işaret kaldırılınca gönderme
+        if (item && !item.done) {
+          const doneCount = updated.filter((c) => c.done).length
+          const total = updated.length
+          await createNotification(
+            params.id,
+            `"${task?.title}" — ${item.text} tamamlandı (${doneCount}/${total})`,
+            "completed"
+          )
+        }
+      }
     }
   }
 
