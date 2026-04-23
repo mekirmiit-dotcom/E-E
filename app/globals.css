@@ -27,6 +27,28 @@
     --ring: 239 84% 67%;
     --radius: 0.875rem;
   }
+
+  .dark {
+    --background: 222 47% 7%;
+    --foreground: 210 40% 96%;
+    --card: 222 47% 10%;
+    --card-foreground: 210 40% 96%;
+    --popover: 222 47% 10%;
+    --popover-foreground: 210 40% 96%;
+    --primary: 239 84% 67%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 217 33% 15%;
+    --secondary-foreground: 210 40% 96%;
+    --muted: 217 33% 15%;
+    --muted-foreground: 215 20% 55%;
+    --accent: 217 33% 15%;
+    --accent-foreground: 210 40% 96%;
+    --destructive: 0 63% 55%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 217 33% 15%;
+    --input: 217 33% 18%;
+    --ring: 239 84% 67%;
+  }
 }
 
 @layer base {
@@ -142,6 +164,53 @@
   .stagger > *:nth-child(4) { animation-delay: 180ms; }
   .stagger > *:nth-child(5) { animation-delay: 240ms; }
   .stagger > *:nth-child(6) { animation-delay: 300ms; }
+}
+
+/* Dark mode component overrides */
+.dark .glass-card {
+  background: rgba(22, 30, 50, 0.75);
+  border-color: rgba(51, 65, 85, 0.7);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.3), 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.dark .surface-card {
+  background: rgb(22, 30, 50);
+  border-color: rgba(51, 65, 85, 0.6);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+.dark .kanban-column {
+  background: rgba(22, 30, 50, 0.6);
+  border-color: rgba(51, 65, 85, 0.6);
+}
+
+.dark .kanban-column:hover {
+  background: rgba(22, 30, 50, 0.8);
+}
+
+.dark .task-card {
+  background: rgb(22, 30, 50);
+  border-color: rgba(51, 65, 85, 0.5);
+}
+
+.dark .task-card:hover {
+  border-color: rgba(71, 85, 105, 0.8);
+  box-shadow: 0 4px 6px rgba(0,0,0,0.2), 0 12px 24px rgba(0,0,0,0.2);
+}
+
+.dark .column-emin { background: linear-gradient(180deg, rgba(49,46,129,0.25) 0%, rgba(22,30,50,0.2) 100%); }
+.dark .column-emre { background: linear-gradient(180deg, rgba(120,53,15,0.25) 0%, rgba(22,30,50,0.2) 100%); }
+.dark .column-shared { background: linear-gradient(180deg, rgba(6,78,59,0.25) 0%, rgba(22,30,50,0.2) 100%); }
+
+.dark .owner-badge-emin { @apply bg-indigo-950 text-indigo-300 border-indigo-800; }
+.dark .owner-badge-emre { @apply bg-amber-950 text-amber-300 border-amber-800; }
+.dark .owner-badge-shared { @apply bg-emerald-950 text-emerald-300 border-emerald-800; }
+
+.dark .chip {
+  @apply border-slate-700 bg-slate-800 text-slate-300 hover:bg-slate-700 hover:border-slate-600;
+}
+.dark .chip-active {
+  @apply bg-slate-100 text-slate-900 border-slate-100;
 }
 
 ::-webkit-scrollbar { width: 6px; height: 6px; }

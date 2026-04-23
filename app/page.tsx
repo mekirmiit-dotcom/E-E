@@ -30,6 +30,7 @@ import { cn } from "@/lib/utils"
 import Column from "@/components/Column"
 import TaskCard from "@/components/TaskCard"
 import NotificationBell from "@/components/NotificationBell"
+import ThemeToggle from "@/components/ThemeToggle"
 import { loadTasks, isOverdue, type Task } from "@/lib/tasks"
 import { supabase, type Owner, type Status } from "@/lib/supabase"
 
@@ -230,6 +231,7 @@ export default function DashboardPage() {
                 </Link>
               </div>
               <div className="w-px h-6 bg-slate-200 mx-1 hidden sm:block" />
+              <ThemeToggle />
               <NotificationBell />
               <Button
                 onClick={() => router.push("/tasks/new")}

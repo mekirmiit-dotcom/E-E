@@ -10,6 +10,7 @@ import {
   StickyNote, ChevronRight, Calendar
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import ThemeToggle from "@/components/ThemeToggle"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import {
@@ -98,6 +99,7 @@ export default function EminPage() {
                 <p className="text-[10px] font-mono text-muted-foreground">Kişisel Görev Panosu</p>
               </div>
             </div>
+            <ThemeToggle />
             <Button
               onClick={() => router.push("/tasks/new?owner=emin")}
               size="sm"
