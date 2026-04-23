@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils"
 import { formatDistanceToNow } from "date-fns"
 import { tr } from "date-fns/locale"
 import { supabase, type Notification } from "@/lib/supabase"
-import { markNotificationRead, markAllNotificationsRead } from "@/lib/notifications"
+import { markNotificationRead, markAllNotificationsRead, registerPush } from "@/lib/notifications"
 
 const typeConfig = {
   reminder: { icon: "⏰", color: "text-amber-600 bg-amber-50" },
@@ -20,6 +20,13 @@ const typeConfig = {
 export default function NotificationBell() {
   const [open, setOpen] = useState(false)
   const [notifs, setNotifs] = useState<Notification[]>([])
+  const [pushEnabled, setPushEnabled] = useState(false)
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && "Notification" in window) {
+      setPushEnabled(Notification.permission === "granted")
+    }
+  }, [])
 
   const unread = notifs.filter((n) => !n.read).length
 
@@ -124,15 +131,30 @@ export default function NotificationBell() {
                 <Badge className="h-5 text-[10px] px-1.5 bg-indigo-600">{unread}</Badge>
               )}
             </div>
-            {unread > 0 && (
-              <button
-                onClick={handleMarkAllRead}
-                className="flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-800 font-medium transition-colors"
-              >
-                <CheckCheck className="h-3 w-3" />
-                Tümünü okundu işaretle
-              </button>
-            )}
+            <div className="flex items-center gap-2">
+              {!pushEnabled && (
+                <button
+                  onClick={async () => {
+                    const ok = await registerPush()
+                    if (ok) setPushEnabled(true)
+                  }}
+                  className="flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400 hover:text-indigo-600 font-medium transition-colors"
+                  title="Telefona bildirim al"
+                >
+                  <Bell className="h-3 w-3" />
+                  Bildirimleri aç
+                </button>
+              )}
+              {unread > 0 && (
+                <button
+                  onClick={handleMarkAllRead}
+                  className="flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-800 font-medium transition-colors"
+                >
+                  <CheckCheck className="h-3 w-3" />
+                  Tümünü oku
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Notifications list */}
