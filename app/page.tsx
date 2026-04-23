@@ -12,7 +12,18 @@ import {
   type DragEndEvent,
 } from "@dnd-kit/core"
 import { arrayMove } from "@dnd-kit/sortable"
-import { Plus, LayoutGrid, Search, Filter, TrendingUp, Clock, AlertTriangle, CheckCircle2 } from "lucide-react"
+import Link from "next/link"
+import {
+  Plus,
+  LayoutGrid,
+  Search,
+  Filter,
+  TrendingUp,
+  Clock,
+  AlertTriangle,
+  CheckCircle2,
+  Sparkles,
+} from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
@@ -33,8 +44,10 @@ export default function DashboardPage() {
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
-    loadTasks().then(setTasks)
-    setMounted(true)
+    loadTasks().then((data) => {
+      setTasks(data)
+      setMounted(true)
+    })
   }, [])
 
   const sensors = useSensors(
@@ -88,7 +101,6 @@ export default function DashboardPage() {
       return t
     })
 
-    // Reorder within the same column
     if (overTask && overTask.owner === activeTask.owner && active.id !== overId) {
       const colTasks = updatedTasks.filter((t) => t.owner === overOwner)
       const oldIdx = colTasks.findIndex((t) => t.id === active.id)
@@ -98,21 +110,18 @@ export default function DashboardPage() {
         order_index: i,
       }))
       const rest = updatedTasks.filter((t) => t.owner !== overOwner)
-      const final = [...rest, ...reordered]
-      setTasks(final)
-      
+      setTasks([...rest, ...reordered])
       return
     }
 
     setTasks(updatedTasks)
-    
   }
 
-  // Stats
   const totalTasks = tasks.length
   const doneTasks = tasks.filter((t) => t.status === "done").length
   const overdueTasks = tasks.filter(isOverdue).length
   const inProgressTasks = tasks.filter((t) => t.status === "in_progress").length
+  const completionRate = totalTasks > 0 ? Math.round((doneTasks / totalTasks) * 100) : 0
 
   const columns: {
     owner: Owner
@@ -125,31 +134,31 @@ export default function DashboardPage() {
       owner: "emin",
       label: "Emin",
       emoji: "E",
-      color: "bg-indigo-100 text-indigo-700",
-      accentColor: "hover:bg-indigo-100 text-indigo-600",
+      color: "bg-indigo-50 text-indigo-700 border-indigo-100",
+      accentColor: "hover:bg-indigo-50 text-indigo-600",
     },
     {
       owner: "emre",
       label: "Emre",
       emoji: "E",
-      color: "bg-amber-100 text-amber-700",
-      accentColor: "hover:bg-amber-100 text-amber-600",
+      color: "bg-amber-50 text-amber-700 border-amber-100",
+      accentColor: "hover:bg-amber-50 text-amber-600",
     },
     {
       owner: "shared",
       label: "Ortak",
-      emoji: "🤝",
-      color: "bg-emerald-100 text-emerald-700",
-      accentColor: "hover:bg-emerald-100 text-emerald-600",
+      emoji: "◆",
+      color: "bg-emerald-50 text-emerald-700 border-emerald-100",
+      accentColor: "hover:bg-emerald-50 text-emerald-600",
     },
   ]
 
-  const statusFilters: { value: FilterStatus; label: string }[] = [
-    { value: "all", label: "Tümü" },
-    { value: "todo", label: "Yapılacak" },
-    { value: "in_progress", label: "Devam" },
-    { value: "review", label: "İnceleme" },
-    { value: "done", label: "Tamam" },
+  const statusFilters: { value: FilterStatus; label: string; count?: number }[] = [
+    { value: "all", label: "Tümü", count: tasks.length },
+    { value: "todo", label: "Yapılacak", count: tasks.filter((t) => t.status === "todo").length },
+    { value: "in_progress", label: "Devam", count: inProgressTasks },
+    { value: "review", label: "İnceleme", count: tasks.filter((t) => t.status === "review").length },
+    { value: "done", label: "Tamam", count: doneTasks },
   ]
 
   if (!mounted) return null
@@ -157,40 +166,63 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen">
       {/* Header */}
-      <header className="sticky top-0 z-40 border-b border-white/60 bg-white/70 backdrop-blur-xl">
+      <header className="sticky top-0 z-40 border-b border-slate-200/60 bg-white/75 backdrop-blur-xl">
         <div className="max-w-screen-xl mx-auto px-4 sm:px-6">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-700 flex items-center justify-center shadow-md">
-                <LayoutGrid className="h-4 w-4 text-white" />
+              <div className="relative">
+                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 via-indigo-600 to-violet-700 flex items-center justify-center shadow-soft-md">
+                  <LayoutGrid className="h-4 w-4 text-white" />
+                </div>
+                <div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-white animate-pulse" />
               </div>
               <div>
-                <h1 className="font-display font-bold text-base text-slate-900 leading-none">
+                <h1 className="font-display font-bold text-[15px] tracking-tight text-slate-900 leading-none">
                   İş Takibi
                 </h1>
-                <p className="text-[10px] font-mono text-muted-foreground">Emin & Emre</p>
+                <p className="text-[10px] font-mono text-slate-500 mt-0.5 tracking-wider uppercase">Emin × Emre</p>
               </div>
             </div>
 
             {/* Search */}
-            <div className="hidden md:flex relative w-64">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+            <div className="hidden md:flex relative w-72">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
               <Input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Görev ara..."
-                className="pl-8 h-8 text-sm bg-slate-50/80 border-slate-200"
+                className="pl-9 h-9 text-sm bg-slate-50/70 border-slate-200/70 rounded-xl focus-visible:bg-white transition-colors"
               />
+              <kbd className="absolute right-2.5 top-1/2 -translate-y-1/2 hidden lg:flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-white border border-slate-200 text-[10px] font-mono text-slate-400">
+                ⌘K
+              </kbd>
             </div>
 
             {/* Actions */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
+              <div className="hidden sm:flex items-center gap-1">
+                <Link
+                  href="/emin"
+                  className="group flex items-center gap-2 pl-1 pr-3 py-1 rounded-full text-xs font-medium bg-white hover:bg-indigo-50/80 text-slate-700 hover:text-indigo-700 transition-all border border-slate-200/70 hover:border-indigo-200"
+                >
+                  <span className="w-6 h-6 rounded-full bg-gradient-to-br from-indigo-400 to-indigo-600 flex items-center justify-center font-bold text-white text-[10px] shadow-sm">E</span>
+                  Emin
+                </Link>
+                <Link
+                  href="/emre"
+                  className="group flex items-center gap-2 pl-1 pr-3 py-1 rounded-full text-xs font-medium bg-white hover:bg-amber-50/80 text-slate-700 hover:text-amber-700 transition-all border border-slate-200/70 hover:border-amber-200"
+                >
+                  <span className="w-6 h-6 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center font-bold text-white text-[10px] shadow-sm">E</span>
+                  Emre
+                </Link>
+              </div>
+              <div className="w-px h-6 bg-slate-200 mx-1 hidden sm:block" />
               <NotificationBell />
               <Button
                 onClick={() => router.push("/tasks/new")}
                 size="sm"
-                className="gap-1.5 rounded-xl shadow-sm"
+                className="gap-1.5 rounded-xl shadow-soft-md bg-slate-900 hover:bg-slate-800 text-white h-9"
               >
                 <Plus className="h-4 w-4" />
                 <span className="hidden sm:inline">Yeni Görev</span>
@@ -200,53 +232,107 @@ export default function DashboardPage() {
         </div>
       </header>
 
-      <main className="max-w-screen-xl mx-auto px-4 sm:px-6 py-6">
+      <main className="max-w-screen-xl mx-auto px-4 sm:px-6 py-8 animate-fade-in">
+        {/* Hero strip */}
+        <div className="mb-7">
+          <div className="flex items-center gap-2 text-[11px] text-slate-500 font-mono uppercase tracking-[0.14em] mb-2">
+            <Sparkles className="h-3 w-3" />
+            Genel Bakış
+          </div>
+          <div className="flex items-end justify-between flex-wrap gap-4">
+            <h2 className="font-display font-bold text-2xl sm:text-3xl tracking-tight text-slate-900">
+              {greetingByTime()},{" "}
+              <span className="bg-gradient-to-r from-indigo-600 via-violet-600 to-indigo-700 bg-clip-text text-transparent">
+                bugün {inProgressTasks > 0 ? `${inProgressTasks} görev` : "işe koyulmanın zamanı"}
+              </span>
+            </h2>
+            {totalTasks > 0 && (
+              <div className="flex items-center gap-3 text-sm">
+                <div className="flex items-center gap-2">
+                  <div className="relative w-28 h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                    <div
+                      className="absolute inset-y-0 left-0 bg-gradient-to-r from-emerald-400 to-emerald-500 rounded-full transition-all duration-700"
+                      style={{ width: `${completionRate}%` }}
+                    />
+                  </div>
+                  <span className="font-mono text-xs text-slate-600 tabular-nums">%{completionRate}</span>
+                </div>
+                <span className="text-slate-400 text-xs">tamamlandı</span>
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* Stats row */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-7 stagger">
           {[
-            { icon: TrendingUp, label: "Toplam", value: totalTasks, color: "text-slate-600 bg-slate-100" },
-            { icon: Clock, label: "Devam Eden", value: inProgressTasks, color: "text-blue-600 bg-blue-100" },
-            { icon: AlertTriangle, label: "Gecikmiş", value: overdueTasks, color: "text-red-600 bg-red-100" },
-            { icon: CheckCircle2, label: "Tamamlanan", value: doneTasks, color: "text-emerald-600 bg-emerald-100" },
+            { icon: TrendingUp, label: "Toplam Görev", value: totalTasks, color: "text-slate-700", iconBg: "bg-slate-100", trend: null },
+            { icon: Clock, label: "Devam Eden", value: inProgressTasks, color: "text-blue-700", iconBg: "bg-blue-50", trend: null },
+            { icon: AlertTriangle, label: "Gecikmiş", value: overdueTasks, color: "text-red-700", iconBg: "bg-red-50", trend: overdueTasks > 0 ? "alert" : null },
+            { icon: CheckCircle2, label: "Tamamlanan", value: doneTasks, color: "text-emerald-700", iconBg: "bg-emerald-50", trend: null },
           ].map((stat) => (
-            <div key={stat.label} className="glass-card rounded-2xl px-4 py-3 flex items-center gap-3">
-              <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0", stat.color)}>
-                <stat.icon className="h-4 w-4" />
+            <div
+              key={stat.label}
+              className={cn(
+                "group relative surface-card px-4 py-3.5 flex items-center gap-3 hover:shadow-soft-md transition-all duration-300 hover:-translate-y-0.5 overflow-hidden",
+                stat.trend === "alert" && "ring-1 ring-red-100"
+              )}
+            >
+              <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0", stat.iconBg)}>
+                <stat.icon className={cn("h-4 w-4", stat.color)} />
               </div>
-              <div>
-                <p className="font-display font-bold text-xl text-slate-900 leading-none">{stat.value}</p>
-                <p className="text-[11px] text-muted-foreground font-body mt-0.5">{stat.label}</p>
+              <div className="min-w-0">
+                <p className="font-display font-bold text-2xl text-slate-900 leading-none tabular-nums">{stat.value}</p>
+                <p className="text-[11px] text-slate-500 font-medium mt-1">{stat.label}</p>
               </div>
+              {stat.trend === "alert" && (
+                <span className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+              )}
             </div>
           ))}
         </div>
 
         {/* Filters */}
-        <div className="flex items-center gap-2 mb-6 overflow-x-auto pb-1">
-          <Filter className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+        <div className="flex items-center gap-2 mb-6 overflow-x-auto pb-1 -mx-1 px-1">
+          <div className="flex items-center gap-1.5 text-xs text-slate-500 font-medium pr-2 flex-shrink-0">
+            <Filter className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Filtrele</span>
+          </div>
           {statusFilters.map((f) => (
             <button
               key={f.value}
               onClick={() => setFilterStatus(f.value)}
               className={cn(
-                "px-3 py-1.5 rounded-full text-xs font-medium font-body whitespace-nowrap transition-all",
+                "group inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all border",
                 filterStatus === f.value
-                  ? "bg-indigo-600 text-white shadow-sm"
-                  : "bg-white/80 text-slate-600 hover:bg-white border border-slate-200"
+                  ? "bg-slate-900 text-white border-slate-900 shadow-soft-md"
+                  : "bg-white text-slate-600 border-slate-200/70 hover:bg-slate-50 hover:border-slate-300"
               )}
             >
               {f.label}
+              {typeof f.count === "number" && (
+                <span
+                  className={cn(
+                    "text-[10px] font-mono tabular-nums px-1.5 py-0.5 rounded-full",
+                    filterStatus === f.value
+                      ? "bg-white/15 text-white/90"
+                      : "bg-slate-100 text-slate-500 group-hover:bg-slate-200"
+                  )}
+                >
+                  {f.count}
+                </span>
+              )}
             </button>
           ))}
 
           {/* Mobile search */}
-          <div className="md:hidden flex-1 min-w-32 relative ml-2">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+          <div className="md:hidden flex-1 min-w-32 relative ml-auto">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
             <Input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Ara..."
-              className="pl-8 h-8 text-sm bg-white/80 border-slate-200"
+              className="pl-8 h-8 text-sm bg-white border-slate-200 rounded-lg"
             />
           </div>
         </div>
@@ -257,7 +343,7 @@ export default function DashboardPage() {
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
         >
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 stagger">
             {columns.map((col) => {
               const colTasks = getOwnerTasks(col.owner)
               const allColTasks = tasks.filter((t) => t.owner === col.owner)
@@ -287,11 +373,19 @@ export default function DashboardPage() {
 
         {/* Empty state */}
         {tasks.length === 0 && (
-          <div className="text-center py-20">
-            <div className="text-5xl mb-4">📋</div>
-            <h3 className="font-display font-bold text-xl text-slate-800 mb-2">Henüz görev yok</h3>
-            <p className="text-muted-foreground font-body mb-6">İlk görevi ekleyerek başla</p>
-            <Button onClick={() => router.push("/tasks/new")} className="gap-2">
+          <div className="text-center py-24 animate-fade-in">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-100 to-violet-100 mb-5 shadow-soft-md">
+              <LayoutGrid className="h-7 w-7 text-indigo-600" />
+            </div>
+            <h3 className="font-display font-bold text-2xl tracking-tight text-slate-900 mb-2">Henüz görev yok</h3>
+            <p className="text-slate-500 mb-7 max-w-sm mx-auto">
+              İlk görevini ekleyerek başla. Emin, Emre veya Ortak sütununa ekleyebilirsin.
+            </p>
+            <Button
+              onClick={() => router.push("/tasks/new")}
+              size="lg"
+              className="gap-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white shadow-soft-md"
+            >
               <Plus className="h-4 w-4" />
               İlk Görevi Ekle
             </Button>
@@ -300,4 +394,12 @@ export default function DashboardPage() {
       </main>
     </div>
   )
+}
+
+function greetingByTime(): string {
+  const h = new Date().getHours()
+  if (h < 6) return "İyi geceler"
+  if (h < 12) return "Günaydın"
+  if (h < 18) return "İyi günler"
+  return "İyi akşamlar"
 }
