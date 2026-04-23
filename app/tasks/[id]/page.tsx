@@ -156,7 +156,7 @@ export default function TaskDetailPage({ params }: { params: { id: string } }) {
 
   return (
     <div className="min-h-screen">
-      <header className="sticky top-0 z-40 border-b border-white/60 bg-white/70 backdrop-blur-xl">
+      <header className="sticky top-0 z-40 border-b border-white/60 dark:border-slate-700/60 bg-white/70 dark:bg-slate-900/80 backdrop-blur-xl">
         <div className="max-w-2xl mx-auto px-4 sm:px-6">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-3">
@@ -166,7 +166,7 @@ export default function TaskDetailPage({ params }: { params: { id: string } }) {
                 </div>
               </Link>
               <div>
-                <h1 className="font-display font-bold text-sm text-slate-900 leading-none line-clamp-1">{task.title}</h1>
+                <h1 className="font-display font-bold text-sm text-slate-900 dark:text-slate-100 leading-none line-clamp-1">{task.title}</h1>
                 <p className="text-[10px] font-mono text-muted-foreground mt-0.5">
                   {format(parseISO(task.created_at), "d MMMM yyyy", { locale: tr })} tarihinde oluşturuldu
                 </p>
@@ -225,7 +225,7 @@ export default function TaskDetailPage({ params }: { params: { id: string } }) {
             </div>
           ) : (
             <>
-              <h2 className="font-display font-bold text-xl text-slate-900 mb-2">{task.title}</h2>
+              <h2 className="font-display font-bold text-xl text-slate-900 dark:text-slate-100 mb-2">{task.title}</h2>
               {task.description ? (
                 <p className="text-sm text-slate-600 font-body leading-relaxed">{task.description}</p>
               ) : (
@@ -236,7 +236,7 @@ export default function TaskDetailPage({ params }: { params: { id: string } }) {
         </div>
 
         <div className="glass-card rounded-2xl p-6">
-          <h3 className="font-display font-semibold text-sm text-slate-800 mb-4">Görev Detayları</h3>
+          <h3 className="font-display font-semibold text-sm text-slate-800 dark:text-slate-200 mb-4">Görev Detayları</h3>
           {editing ? (
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -317,7 +317,7 @@ export default function TaskDetailPage({ params }: { params: { id: string } }) {
 
         <div className="glass-card rounded-2xl p-6">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-display font-semibold text-sm text-slate-800 flex items-center gap-2">
+            <h3 className="font-display font-semibold text-sm text-slate-800 dark:text-slate-200 flex items-center gap-2">
               <Tag className="h-4 w-4" /> Etiketler
             </h3>
           </div>
@@ -350,7 +350,7 @@ export default function TaskDetailPage({ params }: { params: { id: string } }) {
 
         <div className="glass-card rounded-2xl p-6">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-display font-semibold text-sm text-slate-800 flex items-center gap-2">
+            <h3 className="font-display font-semibold text-sm text-slate-800 dark:text-slate-200 flex items-center gap-2">
               <CheckSquare className="h-4 w-4" /> Kontrol Listesi
             </h3>
             {total > 0 && (
@@ -373,14 +373,14 @@ export default function TaskDetailPage({ params }: { params: { id: string } }) {
             <div className="space-y-2">
               {checklist.map((item) => (
                 <div key={item.id} className={cn("flex items-center gap-3 py-2.5 px-3 rounded-xl border transition-all group",
-                  item.done ? "bg-slate-50/80 border-slate-100" : "bg-white border-slate-200")}>
+                  item.done ? "bg-slate-50/80 dark:bg-slate-800/50 border-slate-100 dark:border-slate-700" : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700")}>
                   <button onClick={() => toggleCheckItem(item.id)}
                     className={cn("w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 transition-all",
                       item.done ? "bg-indigo-600 border-indigo-600" : "border-slate-300 hover:border-indigo-400")}>
                     {item.done && <Check className="h-3 w-3 text-white" />}
                   </button>
                   <span className={cn("flex-1 text-sm font-body transition-all",
-                    item.done ? "line-through text-muted-foreground" : "text-slate-700")}>
+                    item.done ? "line-through text-muted-foreground" : "text-slate-700 dark:text-slate-300")}>
                     {item.text}
                   </span>
                   {editing && (

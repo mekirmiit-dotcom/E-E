@@ -75,14 +75,14 @@ export default function Column({
             </div>
             <span
               className={cn(
-                "absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-white",
+                "absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-white dark:border-slate-900",
                 dotColor
               )}
             />
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-1.5">
-              <h3 className="font-display font-bold text-sm text-slate-900 leading-none tracking-tight">
+              <h3 className="font-display font-bold text-sm text-slate-900 dark:text-slate-100 leading-none tracking-tight">
                 {label}
               </h3>
               {(owner === "emin" || owner === "emre") && (
@@ -97,12 +97,12 @@ export default function Column({
                   <ExternalLink className="h-3 w-3" />
                 </Link>
               )}
-              <span className="ml-1 text-[11px] font-mono font-medium tabular-nums text-slate-400 bg-slate-100/80 px-1.5 py-0.5 rounded-full">
+              <span className="ml-1 text-[11px] font-mono font-medium tabular-nums text-slate-400 dark:text-slate-500 bg-slate-100/80 dark:bg-slate-800 px-1.5 py-0.5 rounded-full">
                 {tasks.length}
               </span>
             </div>
             <div className="flex items-center gap-2 mt-1">
-              <span className="text-[10px] text-slate-500 font-medium">
+              <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">
                 {stats.done}/{stats.total} tamamlandı
               </span>
               {stats.overdue > 0 && (
@@ -142,7 +142,7 @@ export default function Column({
       {/* Progress bar */}
       {stats.total > 0 && (
         <div className="mb-3">
-          <div className="w-full h-1 bg-slate-200/60 rounded-full overflow-hidden">
+          <div className="w-full h-1 bg-slate-200/60 dark:bg-slate-700/60 rounded-full overflow-hidden">
             <div
               className={cn("h-full rounded-full transition-all duration-700", progressColor)}
               style={{ width: `${progress}%` }}
@@ -159,8 +159,8 @@ export default function Column({
               className={cn(
                 "flex flex-col items-center justify-center py-12 rounded-xl border border-dashed text-center transition-all duration-300",
                 isOver
-                  ? "border-current bg-white/60 scale-[1.01]"
-                  : "border-slate-200/70 bg-white/20",
+                  ? "border-current bg-white/60 dark:bg-slate-800/60 scale-[1.01]"
+                  : "border-slate-200/70 dark:border-slate-700/70 bg-white/20 dark:bg-slate-800/10",
                 owner === "emin" && isOver && "border-indigo-400 text-indigo-500",
                 owner === "emre" && isOver && "border-amber-400 text-amber-500",
                 owner === "shared" && isOver && "border-emerald-400 text-emerald-500"
@@ -169,7 +169,7 @@ export default function Column({
               <div
                 className={cn(
                   "w-10 h-10 rounded-xl flex items-center justify-center mb-2 transition-colors",
-                  isOver ? "bg-white/80" : "bg-slate-100/60"
+                  isOver ? "bg-white/80 dark:bg-slate-700/80" : "bg-slate-100/60 dark:bg-slate-800/60"
                 )}
               >
                 <Plus
@@ -179,7 +179,7 @@ export default function Column({
                   )}
                 />
               </div>
-              <p className="text-xs text-slate-500 font-medium">
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
                 {isOver ? "Buraya bırak" : "Henüz görev yok"}
               </p>
               <button

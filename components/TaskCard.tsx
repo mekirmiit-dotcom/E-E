@@ -53,10 +53,10 @@ export default function TaskCard({ task, overlay = false }: TaskCardProps) {
   const soon = isDueSoon(task)
 
   const priorityChipClass: Record<Priority, string> = {
-    low: "bg-slate-50 text-slate-600 border-slate-200",
-    medium: "bg-blue-50 text-blue-700 border-blue-100",
-    high: "bg-orange-50 text-orange-700 border-orange-100",
-    critical: "bg-red-50 text-red-700 border-red-100",
+    low: "bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700",
+    medium: "bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border-blue-100 dark:border-blue-900",
+    high: "bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300 border-orange-100 dark:border-orange-900",
+    critical: "bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 border-red-100 dark:border-red-900",
   }
 
   return (
@@ -75,7 +75,7 @@ export default function TaskCard({ task, overlay = false }: TaskCardProps) {
         <div
           {...attributes}
           {...listeners}
-          className="mt-0.5 cursor-grab active:cursor-grabbing text-slate-300 hover:text-slate-500 transition-colors flex-shrink-0 opacity-0 group-hover:opacity-100"
+          className="mt-0.5 cursor-grab active:cursor-grabbing text-slate-300 dark:text-slate-600 hover:text-slate-500 dark:hover:text-slate-400 transition-colors flex-shrink-0 opacity-0 group-hover:opacity-100"
         >
           <GripVertical className="h-3.5 w-3.5" />
         </div>
@@ -83,13 +83,13 @@ export default function TaskCard({ task, overlay = false }: TaskCardProps) {
         <div className="flex-1 min-w-0 -ml-6 group-hover:ml-0 transition-all duration-200">
           <button
             onClick={() => router.push(`/tasks/${task.id}`)}
-            className="text-[13.5px] font-medium text-slate-800 leading-snug text-left hover:text-slate-900 transition-colors line-clamp-2 block w-full"
+            className="text-[13.5px] font-medium text-slate-800 dark:text-slate-200 leading-snug text-left hover:text-slate-900 dark:hover:text-white transition-colors line-clamp-2 block w-full"
           >
             {task.title}
           </button>
 
           {task.description && (
-            <p className="text-xs text-slate-500 line-clamp-2 mt-1.5 leading-relaxed">
+            <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 mt-1.5 leading-relaxed">
               {task.description}
             </p>
           )}
@@ -110,7 +110,7 @@ export default function TaskCard({ task, overlay = false }: TaskCardProps) {
           {task.tags.slice(0, 3).map((tag) => (
             <span
               key={tag}
-              className="inline-flex items-center gap-0.5 text-[10px] font-mono px-1.5 py-0.5 rounded-md bg-slate-50 text-slate-500 border border-slate-200/60"
+              className="inline-flex items-center gap-0.5 text-[10px] font-mono px-1.5 py-0.5 rounded-md bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200/60 dark:border-slate-700"
             >
               <Tag className="h-2.5 w-2.5" />
               {tag}
@@ -126,11 +126,11 @@ export default function TaskCard({ task, overlay = false }: TaskCardProps) {
       {total > 0 && (
         <div className="mb-2.5">
           <div className="flex items-center justify-between mb-1">
-            <span className="flex items-center gap-1 text-[10px] text-slate-500 font-medium">
+            <span className="flex items-center gap-1 text-[10px] text-slate-500 dark:text-slate-400 font-medium">
               <CheckSquare className="h-3 w-3" />
               <span className="tabular-nums">{done}/{total}</span>
             </span>
-            <span className="text-[10px] text-slate-400 font-mono tabular-nums">%{progress}</span>
+            <span className="text-[10px] text-slate-400 dark:text-slate-500 font-mono tabular-nums">%{progress}</span>
           </div>
           <Progress value={progress} className="h-1" />
         </div>
@@ -159,10 +159,10 @@ export default function TaskCard({ task, overlay = false }: TaskCardProps) {
             className={cn(
               "flex items-center gap-1 text-[10px] font-mono tabular-nums rounded-md px-1.5 py-0.5 flex-shrink-0",
               overdue
-                ? "text-red-600 bg-red-50 border border-red-100"
+                ? "text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900"
                 : soon
-                ? "text-amber-600 bg-amber-50 border border-amber-100"
-                : "text-slate-500 bg-slate-50 border border-slate-100"
+                ? "text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-900"
+                : "text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700"
             )}
           >
             {overdue ? (

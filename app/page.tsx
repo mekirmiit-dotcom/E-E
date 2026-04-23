@@ -179,7 +179,7 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen">
       {/* Header */}
-      <header className="sticky top-0 z-40 border-b border-slate-200/60 bg-white/75 backdrop-blur-xl">
+      <header className="sticky top-0 z-40 border-b border-slate-200/60 dark:border-slate-700/60 bg-white/75 dark:bg-slate-900/80 backdrop-blur-xl">
         <div className="max-w-screen-xl mx-auto px-4 sm:px-6">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
@@ -191,10 +191,10 @@ export default function DashboardPage() {
                 <div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-white animate-pulse" />
               </div>
               <div>
-                <h1 className="font-display font-bold text-[15px] tracking-tight text-slate-900 leading-none">
+                <h1 className="font-display font-bold text-[15px] tracking-tight text-slate-900 dark:text-slate-100 leading-none">
                   İş Takibi
                 </h1>
-                <p className="text-[10px] font-mono text-slate-500 mt-0.5 tracking-wider uppercase">Emin × Emre</p>
+                <p className="text-[10px] font-mono text-slate-500 dark:text-slate-400 mt-0.5 tracking-wider uppercase">Emin × Emre</p>
               </div>
             </div>
 
@@ -217,20 +217,20 @@ export default function DashboardPage() {
               <div className="hidden sm:flex items-center gap-1">
                 <Link
                   href="/emin"
-                  className="group flex items-center gap-2 pl-1 pr-3 py-1 rounded-full text-xs font-medium bg-white hover:bg-indigo-50/80 text-slate-700 hover:text-indigo-700 transition-all border border-slate-200/70 hover:border-indigo-200"
+                  className="group flex items-center gap-2 pl-1 pr-3 py-1 rounded-full text-xs font-medium bg-white dark:bg-slate-800 hover:bg-indigo-50/80 dark:hover:bg-indigo-900/30 text-slate-700 dark:text-slate-300 hover:text-indigo-700 dark:hover:text-indigo-300 transition-all border border-slate-200/70 dark:border-slate-700 hover:border-indigo-200 dark:hover:border-indigo-700"
                 >
                   <span className="w-6 h-6 rounded-full bg-gradient-to-br from-indigo-400 to-indigo-600 flex items-center justify-center font-bold text-white text-[10px] shadow-sm">E</span>
                   Emin
                 </Link>
                 <Link
                   href="/emre"
-                  className="group flex items-center gap-2 pl-1 pr-3 py-1 rounded-full text-xs font-medium bg-white hover:bg-amber-50/80 text-slate-700 hover:text-amber-700 transition-all border border-slate-200/70 hover:border-amber-200"
+                  className="group flex items-center gap-2 pl-1 pr-3 py-1 rounded-full text-xs font-medium bg-white dark:bg-slate-800 hover:bg-amber-50/80 dark:hover:bg-amber-900/30 text-slate-700 dark:text-slate-300 hover:text-amber-700 dark:hover:text-amber-300 transition-all border border-slate-200/70 dark:border-slate-700 hover:border-amber-200 dark:hover:border-amber-700"
                 >
                   <span className="w-6 h-6 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center font-bold text-white text-[10px] shadow-sm">E</span>
                   Emre
                 </Link>
               </div>
-              <div className="w-px h-6 bg-slate-200 mx-1 hidden sm:block" />
+              <div className="w-px h-6 bg-slate-200 dark:bg-slate-700 mx-1 hidden sm:block" />
               <ThemeToggle />
               <NotificationBell />
               <Button
@@ -254,7 +254,7 @@ export default function DashboardPage() {
             Genel Bakış
           </div>
           <div className="flex items-end justify-between flex-wrap gap-4">
-            <h2 className="font-display font-bold text-2xl sm:text-3xl tracking-tight text-slate-900">
+            <h2 className="font-display font-bold text-2xl sm:text-3xl tracking-tight text-slate-900 dark:text-slate-100">
               {greetingByTime()},{" "}
               <span className="bg-gradient-to-r from-indigo-600 via-violet-600 to-indigo-700 bg-clip-text text-transparent">
                 bugün {inProgressTasks > 0 ? `${inProgressTasks} görev` : "işe koyulmanın zamanı"}

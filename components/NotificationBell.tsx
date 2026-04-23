@@ -114,12 +114,12 @@ export default function NotificationBell() {
       </Button>
 
       {open && (
-        <div className="absolute right-0 top-12 w-80 rounded-2xl border bg-white shadow-2xl z-50 overflow-hidden animate-slide-in">
+        <div className="absolute right-0 top-12 w-80 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-2xl z-50 overflow-hidden animate-slide-in">
           {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3 border-b bg-slate-50/80">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-800/80">
             <div className="flex items-center gap-2">
               <Bell className="h-4 w-4 text-slate-500" />
-              <span className="font-display font-semibold text-sm text-slate-800">Bildirimler</span>
+              <span className="font-display font-semibold text-sm text-slate-800 dark:text-slate-200">Bildirimler</span>
               {unread > 0 && (
                 <Badge className="h-5 text-[10px] px-1.5 bg-indigo-600">{unread}</Badge>
               )}
@@ -149,15 +149,15 @@ export default function NotificationBell() {
                   <div
                     key={notif.id}
                     className={cn(
-                      "flex gap-3 px-4 py-3 border-b last:border-b-0 transition-colors hover:bg-slate-50/60 group",
-                      !notif.read && "bg-indigo-50/30"
+                      "flex gap-3 px-4 py-3 border-b border-slate-100 dark:border-slate-800 last:border-b-0 transition-colors hover:bg-slate-50/60 dark:hover:bg-slate-800/60 group",
+                      !notif.read && "bg-indigo-50/30 dark:bg-indigo-900/10"
                     )}
                   >
                     <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center text-base flex-shrink-0 mt-0.5", cfg.color)}>
                       {cfg.icon}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className={cn("text-xs leading-relaxed font-body", !notif.read ? "text-slate-800 font-medium" : "text-slate-500")}>
+                      <p className={cn("text-xs leading-relaxed font-body", !notif.read ? "text-slate-800 dark:text-slate-200 font-medium" : "text-slate-500 dark:text-slate-400")}>
                         {notif.message}
                       </p>
                       <p className="text-[10px] text-muted-foreground mt-0.5 font-mono">

@@ -79,7 +79,7 @@ export default function EminPage() {
 
   return (
     <div className="min-h-screen">
-      <header className="sticky top-0 z-40 border-b border-white/60 bg-white/70 backdrop-blur-xl">
+      <header className="sticky top-0 z-40 border-b border-white/60 dark:border-slate-700/60 bg-white/70 dark:bg-slate-900/80 backdrop-blur-xl">
         <div className="max-w-3xl mx-auto px-4 sm:px-6">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-3">
@@ -95,7 +95,7 @@ export default function EminPage() {
                 E
               </div>
               <div>
-                <h1 className="font-display font-bold text-base text-slate-900 leading-none">Emin</h1>
+                <h1 className="font-display font-bold text-base text-slate-900 dark:text-slate-100 leading-none">Emin</h1>
                 <p className="text-[10px] font-mono text-muted-foreground">Kişisel Görev Panosu</p>
               </div>
             </div>
@@ -191,7 +191,7 @@ export default function EminPage() {
         {filteredTasks.length === 0 ? (
           <div className="text-center py-16">
             <div className="text-5xl mb-4">📋</div>
-            <h3 className="font-display font-bold text-xl text-slate-800 mb-2">Görev yok</h3>
+            <h3 className="font-display font-bold text-xl text-slate-800 dark:text-slate-200 mb-2">Görev yok</h3>
             <p className="text-muted-foreground font-body mb-6">
               {filterStatus === "all" ? "Yeni bir görev ekleyerek başla" : "Bu durumda görev bulunmuyor"}
             </p>
@@ -217,7 +217,7 @@ export default function EminPage() {
                 <button
                   key={task.id}
                   onClick={() => router.push(`/tasks/${task.id}`)}
-                  className="w-full text-left glass-card rounded-2xl p-4 hover:shadow-md transition-all hover:scale-[1.005] group border border-transparent hover:border-indigo-100"
+                  className="w-full text-left glass-card rounded-2xl p-4 hover:shadow-md transition-all hover:scale-[1.005] group border border-transparent hover:border-indigo-100 dark:hover:border-indigo-900"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
@@ -229,7 +229,7 @@ export default function EminPage() {
                           {STATUS_LABELS[task.status]}
                         </Badge>
                       </div>
-                      <h4 className="font-medium text-sm text-slate-800 group-hover:text-indigo-700 transition-colors leading-snug">
+                      <h4 className="font-medium text-sm text-slate-800 dark:text-slate-200 group-hover:text-indigo-700 dark:group-hover:text-indigo-300 transition-colors leading-snug">
                         {task.title}
                       </h4>
                       {task.description && (
@@ -258,7 +258,7 @@ export default function EminPage() {
                     </div>
                   </div>
                   {checkTotal > 0 && (
-                    <div className="mt-3 pt-3 border-t border-slate-100">
+                    <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-700">
                       <div className="flex items-center justify-between mb-1">
                         <span className="text-[10px] text-muted-foreground font-body">{checkDone}/{checkTotal} alt görev</span>
                         <span className="text-[10px] font-mono text-muted-foreground">{checkProgress}%</span>
