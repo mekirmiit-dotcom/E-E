@@ -39,7 +39,7 @@ export type Task = {
   created_at: string
   updated_at: string
   order_index: number
-  notes: string | null
+  notes?: string | null
 }
 
 export type ChecklistItem = {
