@@ -108,7 +108,13 @@ export default function TaskDetailPage({ params }: { params: { id: string } }) {
     const content = commentText.trim()
     if (!content || !task) return
     setSendingComment(true)
-    await addComment(task.id, commentAuthor, content)
+    const newComment = await addComment(task.id, commentAuthor, content)
+    if (newComment) {
+      // Doğrudan state'e ekle — realtime yoksa da çalışsın
+      setComments((prev) =>
+        prev.find((c) => c.id === newComment.id) ? prev : [newComment, ...prev]
+      )
+    }
     setCommentText("")
     setSendingComment(false)
   }
@@ -627,7 +633,10 @@ export default function TaskDetailPage({ params }: { params: { id: string } }) {
                               {format(parseISO(comment.created_at), "d MMM, HH:mm", { locale: tr })}
                             </span>
                             <button
-                              onClick={() => deleteComment(comment.id)}
+                              onClick={async () => {
+                                setComments((prev) => prev.filter((c) => c.id !== comment.id))
+                                await deleteComment(comment.id)
+                              }}
                               className="opacity-0 group-hover:opacity-100 text-slate-300 hover:text-red-400 dark:text-slate-600 dark:hover:text-red-400 transition-all"
                               title="Yorumu sil"
                             >
