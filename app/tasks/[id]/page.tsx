@@ -19,7 +19,7 @@ import { cn } from "@/lib/utils"
 import {
   getTask, updateTask, deleteTask,
   PRIORITY_COLORS, PRIORITY_LABELS, STATUS_LABELS, OWNER_LABELS,
-  isOverdue, isDueSoon,
+  TASK_COLORS, isOverdue, isDueSoon,
 } from "@/lib/tasks"
 import type { Task, Owner, Priority, Status, ChecklistItem } from "@/lib/supabase"
 import { createNotification } from "@/lib/notifications"
@@ -42,6 +42,7 @@ export default function TaskDetailPage({ params }: { params: { id: string } }) {
   const [dueDate, setDueDate] = useState("")
   const [tags, setTags] = useState<string[]>([])
   const [checklist, setChecklist] = useState<ChecklistItem[]>([])
+  const [color, setColor] = useState<string | null>(null)
 
   useEffect(() => {
     getTask(params.id).then((t) => {
@@ -63,6 +64,7 @@ export default function TaskDetailPage({ params }: { params: { id: string } }) {
     setDueDate(t.due_date || "")
     setTags(t.tags)
     setChecklist(t.checklist)
+    setColor(t.color || null)
   }
 
   function cancelEdit() {
@@ -77,7 +79,7 @@ export default function TaskDetailPage({ params }: { params: { id: string } }) {
       title, description: description || null,
       owner, priority, status,
       due_date: dueDate || null,
-      tags, checklist,
+      tags, checklist, color,
     })
     setSaving(false)
     if (!updated) return
@@ -325,6 +327,36 @@ export default function TaskDetailPage({ params }: { params: { id: string } }) {
               <div>
                 <Label className="mb-2 block text-xs">Son Tarih</Label>
                 <Input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} className="text-sm" />
+              </div>
+              <div className="col-span-2">
+                <Label className="mb-2 block text-xs">Kart Rengi <span className="text-slate-400 font-normal normal-case">· isteğe bağlı</span></Label>
+                <div className="flex flex-wrap gap-2 items-center">
+                  {TASK_COLORS.map((c) => (
+                    <button
+                      key={c.id}
+                      type="button"
+                      onClick={() => setColor(color === c.id ? null : c.id)}
+                      title={c.label}
+                      className={cn(
+                        "w-7 h-7 rounded-full transition-all duration-150",
+                        color === c.id
+                          ? "ring-2 ring-offset-2 ring-slate-900 dark:ring-slate-200 scale-110 shadow-md"
+                          : "hover:scale-110 opacity-70 hover:opacity-100"
+                      )}
+                      style={{ backgroundColor: c.hex }}
+                    />
+                  ))}
+                  {color && (
+                    <button
+                      type="button"
+                      onClick={() => setColor(null)}
+                      className="w-7 h-7 rounded-full border-2 border-dashed border-slate-300 dark:border-slate-600 flex items-center justify-center text-slate-400 hover:border-red-400 hover:text-red-400 transition-colors"
+                      title="Rengi kaldır"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           ) : (

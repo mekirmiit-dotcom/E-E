@@ -19,7 +19,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { cn } from "@/lib/utils"
-import { createTask, OWNER_LABELS } from "@/lib/tasks"
+import { createTask, OWNER_LABELS, TASK_COLORS } from "@/lib/tasks"
 import type { Owner, Priority, Status, ChecklistItem } from "@/lib/supabase"
 import { createNotification } from "@/lib/notifications"
 import { format, parseISO } from "date-fns"
@@ -41,11 +41,12 @@ interface WizardData {
   due_date: string
   tags: string[]
   checklist: ChecklistItem[]
+  color: string | null
 }
 
 const DEFAULT_DATA: WizardData = {
   title: "", description: "", owner: "shared", priority: "medium",
-  status: "todo", due_date: "", tags: [], checklist: [],
+  status: "todo", due_date: "", tags: [], checklist: [], color: null,
 }
 
 interface TaskWizardProps { defaultOwner?: Owner }
@@ -86,7 +87,8 @@ export default function TaskWizard({ defaultOwner }: TaskWizardProps) {
       title: data.title.trim(),
       description: data.description.trim() || null,
       owner: data.owner, priority: data.priority, status: data.status,
-      due_date: data.due_date || null, tags: data.tags, checklist: data.checklist, order_index: 999,
+      due_date: data.due_date || null, tags: data.tags, checklist: data.checklist,
+      color: data.color, order_index: 999,
     })
     if (!task) {
       console.error("[TaskWizard] createTask failed")
@@ -340,6 +342,45 @@ export default function TaskWizard({ defaultOwner }: TaskWizardProps) {
                       </span>
                     ))}
                   </div>
+                )}
+              </div>
+
+              {/* Color picker */}
+              <div>
+                <Label className="mb-3 block text-xs font-semibold text-slate-900 dark:text-slate-100 uppercase tracking-wider">
+                  Kart Rengi <span className="text-slate-500 dark:text-slate-400 normal-case font-normal">· isteğe bağlı</span>
+                </Label>
+                <div className="flex flex-wrap gap-2.5 items-center">
+                  {TASK_COLORS.map((c) => (
+                    <button
+                      key={c.id}
+                      type="button"
+                      onClick={() => update("color", data.color === c.id ? null : c.id)}
+                      title={c.label}
+                      className={cn(
+                        "w-8 h-8 rounded-full transition-all duration-150",
+                        data.color === c.id
+                          ? "ring-2 ring-offset-2 ring-slate-900 dark:ring-slate-200 scale-110 shadow-md"
+                          : "hover:scale-110 hover:shadow-md opacity-70 hover:opacity-100"
+                      )}
+                      style={{ backgroundColor: c.hex }}
+                    />
+                  ))}
+                  {data.color && (
+                    <button
+                      type="button"
+                      onClick={() => update("color", null)}
+                      className="w-8 h-8 rounded-full border-2 border-dashed border-slate-300 dark:border-slate-600 flex items-center justify-center text-slate-400 dark:text-slate-500 hover:border-red-400 hover:text-red-400 transition-colors"
+                      title="Rengi kaldır"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  )}
+                </div>
+                {data.color && (
+                  <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-2">
+                    Seçili: <span className="font-semibold">{TASK_COLORS.find(c => c.id === data.color)?.label}</span> — kartın sol kenarında görünecek
+                  </p>
                 )}
               </div>
             </div>

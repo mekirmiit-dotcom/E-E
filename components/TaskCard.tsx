@@ -21,6 +21,7 @@ import {
   type Task,
   type Priority,
   PRIORITY_LABELS,
+  TASK_COLORS,
   isOverdue,
   isDueSoon,
 } from "@/lib/tasks"
@@ -59,17 +60,27 @@ export default function TaskCard({ task, overlay = false }: TaskCardProps) {
     critical: "bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 border-red-100 dark:border-red-900",
   }
 
+  const colorHex = task.color ? TASK_COLORS.find((c) => c.id === task.color)?.hex : null
+
   return (
     <div
       ref={setNodeRef}
       style={style}
       className={cn(
-        "task-card group animate-stagger-in",
+        "task-card group animate-stagger-in relative overflow-hidden",
         `priority-${task.priority}`,
         isDragging && !overlay && "opacity-40",
         overlay && "drag-overlay"
       )}
     >
+      {/* Color strip */}
+      {colorHex && (
+        <div
+          className="absolute left-0 top-0 bottom-0 w-[3px] rounded-l-xl"
+          style={{ backgroundColor: colorHex }}
+        />
+      )}
+
       {/* Title row */}
       <div className="flex items-start gap-2 mb-2">
         <div

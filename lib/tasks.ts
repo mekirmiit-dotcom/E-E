@@ -62,3 +62,14 @@ export const STATUS_LABELS: Record<string, string> = {
 export const OWNER_LABELS: Record<Owner, string> = {
   emin: "Emin", emre: "Emre", shared: "Ortak",
 }
+
+export const TASK_COLORS = [
+  { id: "red",    label: "Kırmızı",  hex: "#ef4444" },
+  { id: "orange", label: "Turuncu",  hex: "#f97316" },
+  { id: "yellow", label: "Sarı",     hex: "#eab308" },
+  { id: "green",  label: "Yeşil",    hex: "#22c55e" },
+  { id: "teal",   label: "Turkuaz",  hex: "#14b8a6" },
+  { id: "blue",   label: "Mavi",     hex: "#3b82f6" },
+  { id: "purple", label: "Mor",      hex: "#a855f7" },
+  { id: "pink",   label: "Pembe",    hex: "#ec4899" },
+]
