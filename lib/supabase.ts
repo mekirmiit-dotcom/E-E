@@ -49,6 +49,14 @@ export type ChecklistItem = {
   done: boolean
 }
 
+export type Comment = {
+  id: string
+  task_id: string
+  author: "emin" | "emre"
+  content: string
+  created_at: string
+}
+
 export type Notification = {
   id: string
   task_id: string

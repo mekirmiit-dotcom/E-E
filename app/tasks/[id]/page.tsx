@@ -6,7 +6,7 @@ import { format, parseISO } from "date-fns"
 import { tr } from "date-fns/locale"
 import {
   ArrowLeft, Edit2, Save, Trash2, Check, X, Plus, Calendar,
-  Tag, User, AlertCircle, Clock, CheckSquare, Loader2
+  Tag, User, AlertCircle, Clock, CheckSquare, Loader2, MessageCircle, Send, Trash
 } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -21,8 +21,10 @@ import {
   PRIORITY_COLORS, PRIORITY_LABELS, STATUS_LABELS, OWNER_LABELS,
   TASK_COLORS, isOverdue, isDueSoon,
 } from "@/lib/tasks"
-import type { Task, Owner, Priority, Status, ChecklistItem } from "@/lib/supabase"
+import type { Task, Owner, Priority, Status, ChecklistItem, Comment } from "@/lib/supabase"
 import { createNotification } from "@/lib/notifications"
+import { getComments, addComment, deleteComment } from "@/lib/comments"
+import { supabase } from "@/lib/supabase"
 
 export default function TaskDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter()
@@ -44,6 +46,12 @@ export default function TaskDetailPage({ params }: { params: { id: string } }) {
   const [checklist, setChecklist] = useState<ChecklistItem[]>([])
   const [color, setColor] = useState<string | null>(null)
 
+  // Comments state
+  const [comments, setComments] = useState<Comment[]>([])
+  const [commentAuthor, setCommentAuthor] = useState<"emin" | "emre">("emin")
+  const [commentText, setCommentText] = useState("")
+  const [sendingComment, setSendingComment] = useState(false)
+
   useEffect(() => {
     getTask(params.id).then((t) => {
       if (!t) {
@@ -53,6 +61,30 @@ export default function TaskDetailPage({ params }: { params: { id: string } }) {
       setTask(t)
       resetForm(t)
     })
+    getComments(params.id).then(setComments)
+
+    // Realtime: yeni yorum gelince anında göster
+    const channel = supabase
+      .channel(`comments-${params.id}`)
+      .on("postgres_changes", {
+        event: "INSERT",
+        schema: "public",
+        table: "comments",
+        filter: `task_id=eq.${params.id}`,
+      }, (payload) => {
+        setComments((prev) => [payload.new as Comment, ...prev])
+      })
+      .on("postgres_changes", {
+        event: "DELETE",
+        schema: "public",
+        table: "comments",
+        filter: `task_id=eq.${params.id}`,
+      }, (payload) => {
+        setComments((prev) => prev.filter((c) => c.id !== (payload.old as Comment).id))
+      })
+      .subscribe()
+
+    return () => { supabase.removeChannel(channel) }
   }, [params.id])
 
   function resetForm(t: Task) {
@@ -70,6 +102,15 @@ export default function TaskDetailPage({ params }: { params: { id: string } }) {
   function cancelEdit() {
     if (task) resetForm(task)
     setEditing(false)
+  }
+
+  async function handleAddComment() {
+    const content = commentText.trim()
+    if (!content || !task) return
+    setSendingComment(true)
+    await addComment(task.id, commentAuthor, content)
+    setCommentText("")
+    setSendingComment(false)
   }
 
   async function handleSave() {
@@ -466,6 +507,142 @@ export default function TaskDetailPage({ params }: { params: { id: string } }) {
                   )}
                 </div>
               ))}
+            </div>
+          )}
+        </div>
+
+        {/* Comments */}
+        <div className="glass-card rounded-2xl p-6">
+          <h3 className="font-display font-semibold text-sm text-slate-800 dark:text-slate-200 flex items-center gap-2 mb-5">
+            <MessageCircle className="h-4 w-4" />
+            Yorumlar
+            {comments.length > 0 && (
+              <span className="ml-auto text-[11px] font-mono text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full">
+                {comments.length}
+              </span>
+            )}
+          </h3>
+
+          {/* Comment input */}
+          <div className="mb-6 space-y-3">
+            {/* Author selector */}
+            <div className="flex gap-2">
+              {(["emin", "emre"] as const).map((a) => {
+                const active = commentAuthor === a
+                const styles = {
+                  emin: active
+                    ? "bg-indigo-600 text-white border-indigo-600"
+                    : "border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-indigo-300",
+                  emre: active
+                    ? "bg-amber-500 text-white border-amber-500"
+                    : "border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-amber-300",
+                }
+                return (
+                  <button
+                    key={a}
+                    onClick={() => setCommentAuthor(a)}
+                    className={cn(
+                      "flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-medium transition-all",
+                      styles[a]
+                    )}
+                  >
+                    <div className={cn(
+                      "w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold",
+                      active ? "bg-white/25" : a === "emin" ? "bg-indigo-100 text-indigo-700" : "bg-amber-100 text-amber-700"
+                    )}>
+                      {a[0].toUpperCase()}
+                    </div>
+                    {a.charAt(0).toUpperCase() + a.slice(1)}
+                  </button>
+                )
+              })}
+            </div>
+
+            {/* Textarea + send */}
+            <div className="flex gap-2 items-end">
+              <Textarea
+                value={commentText}
+                onChange={(e) => setCommentText(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) handleAddComment()
+                }}
+                placeholder="Yorum yaz... (Ctrl+Enter ile gönder)"
+                rows={2}
+                className="resize-none text-sm flex-1"
+              />
+              <Button
+                onClick={handleAddComment}
+                disabled={sendingComment || !commentText.trim()}
+                size="icon"
+                className="flex-shrink-0 h-[72px] w-10 rounded-xl bg-slate-900 dark:bg-slate-100 hover:bg-slate-800 dark:hover:bg-white text-white dark:text-slate-900"
+              >
+                {sendingComment
+                  ? <Loader2 className="h-4 w-4 animate-spin" />
+                  : <Send className="h-4 w-4" />
+                }
+              </Button>
+            </div>
+          </div>
+
+          {/* Comment list */}
+          {comments.length === 0 ? (
+            <div className="text-center py-8 border border-dashed border-slate-200 dark:border-slate-700 rounded-xl">
+              <MessageCircle className="h-6 w-6 text-slate-300 dark:text-slate-600 mx-auto mb-2" />
+              <p className="text-xs text-slate-400 dark:text-slate-500">Henüz yorum yok</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {comments.map((comment) => {
+                const isEmin = comment.author === "emin"
+                return (
+                  <div
+                    key={comment.id}
+                    className="flex gap-3 group animate-fade-in"
+                  >
+                    {/* Avatar */}
+                    <div className={cn(
+                      "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0 mt-0.5",
+                      isEmin ? "bg-gradient-to-br from-indigo-400 to-indigo-600" : "bg-gradient-to-br from-amber-400 to-amber-600"
+                    )}>
+                      {comment.author[0].toUpperCase()}
+                    </div>
+
+                    {/* Bubble */}
+                    <div className="flex-1 min-w-0">
+                      <div className={cn(
+                        "rounded-2xl rounded-tl-sm px-4 py-3",
+                        isEmin
+                          ? "bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800/40"
+                          : "bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800/40"
+                      )}>
+                        <div className="flex items-center justify-between gap-2 mb-1">
+                          <span className={cn(
+                            "text-[11px] font-semibold",
+                            isEmin ? "text-indigo-700 dark:text-indigo-300" : "text-amber-700 dark:text-amber-300"
+                          )}>
+                            {comment.author.charAt(0).toUpperCase() + comment.author.slice(1)}
+                          </span>
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-[10px] font-mono text-slate-400 dark:text-slate-500">
+                              {format(parseISO(comment.created_at), "d MMM, HH:mm", { locale: tr })}
+                            </span>
+                            <button
+                              onClick={() => deleteComment(comment.id)}
+                              className="opacity-0 group-hover:opacity-100 text-slate-300 hover:text-red-400 dark:text-slate-600 dark:hover:text-red-400 transition-all"
+                              title="Yorumu sil"
+                            >
+                              <Trash className="h-3 w-3" />
+                            </button>
+                          </div>
+                        </div>
+                        <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">
+                          {comment.content}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
             </div>
           )}
         </div>
