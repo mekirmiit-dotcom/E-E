@@ -23,7 +23,8 @@ export async function markAllNotificationsRead(): Promise<void> {
 export async function createNotification(
   taskId: string,
   message: string,
-  type: Notification["type"]
+  type: Notification["type"],
+  pushTitle?: string
 ): Promise<void> {
   const { error } = await supabase.from("notifications").insert({
     task_id: taskId,
@@ -31,15 +32,19 @@ export async function createNotification(
     type,
     read: false,
   })
-  if (error) { console.error("[createNotification] error:", error); return }
+  if (error) {
+    console.error("[createNotification] error:", error.message, error.details)
+    return
+  }
 
   // Send push to all subscribed devices
   try {
-    const typeEmoji = { reminder: "⏰", overdue: "🚨", completed: "✅", assigned: "👤", comment: "💬" }
+    const typeEmoji: Record<string, string> = { reminder: "⏰", overdue: "🚨", completed: "✅", assigned: "👤" }
+    const title = pushTitle ?? `${typeEmoji[type] ?? "🔔"} İş Takibi`
     await fetch("/api/push", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title: `${typeEmoji[type]} İş Takibi`, body: message }),
+      body: JSON.stringify({ title, body: message }),
     })
   } catch (e) {
     console.error("[push] error:", e)

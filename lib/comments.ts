@@ -40,7 +40,7 @@ export async function addComment(
   const preview = content.length > 50 ? content.slice(0, 50) + "…" : content
   const msg = `${authorLabel}, "${taskTitle}" görevine yorum yazdı: "${preview}"`
 
-  await createNotification(taskId, msg, "comment")
+  await createNotification(taskId, msg, "assigned", "💬 Yeni Yorum")
 
   return data
 }
