@@ -47,20 +47,51 @@ export default function Column({
   }[owner]
 
   const ringColor = {
-    emin: "ring-indigo-300/60",
-    emre: "ring-amber-300/60",
-    shared: "ring-emerald-300/60",
+    emin: "ring-indigo-400/70",
+    emre: "ring-amber-400/70",
+    shared: "ring-emerald-400/70",
+  }[owner]
+
+  const glowColor = {
+    emin: "from-indigo-400/10 via-indigo-300/5 to-transparent",
+    emre: "from-amber-400/10 via-amber-300/5 to-transparent",
+    shared: "from-emerald-400/10 via-emerald-300/5 to-transparent",
+  }[owner]
+
+  const shimmerColor = {
+    emin: "bg-indigo-400/20",
+    emre: "bg-amber-400/20",
+    shared: "bg-emerald-400/20",
+  }[owner]
+
+  const borderGlow = {
+    emin: "border-indigo-400/50",
+    emre: "border-amber-400/50",
+    shared: "border-emerald-400/50",
   }[owner]
 
   return (
     <div
       ref={setNodeRef}
       className={cn(
-        "kanban-column relative",
+        "kanban-column relative transition-all duration-200",
         `column-${owner}`,
-        isOver && `ring-2 ring-offset-2 ring-offset-background ${ringColor}`
+        isOver && `ring-2 ring-offset-2 ring-offset-background ${ringColor} border ${borderGlow} scale-[1.01]`
       )}
     >
+      {/* Glow overlay when dragging over */}
+      {isOver && (
+        <div className={cn(
+          "absolute inset-0 rounded-2xl bg-gradient-to-b pointer-events-none z-0",
+          glowColor
+        )}>
+          {/* Shimmer sweep */}
+          <div
+            className={cn("absolute inset-y-0 w-1/2 skew-x-[-20deg] opacity-60", shimmerColor)}
+            style={{ animation: "column-shimmer 1.2s ease-in-out infinite" }}
+          />
+        </div>
+      )}
       {/* Column Header */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2.5 min-w-0">
@@ -153,7 +184,7 @@ export default function Column({
 
       {/* Tasks */}
       <SortableContext items={tasks.map((t) => t.id)} strategy={verticalListSortingStrategy}>
-        <div className="flex flex-col gap-2.5 flex-1">
+        <div className="flex flex-col gap-2.5 flex-1 relative z-10">
           {tasks.length === 0 ? (
             <div
               className={cn(

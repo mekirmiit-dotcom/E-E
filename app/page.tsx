@@ -378,7 +378,12 @@ export default function DashboardPage() {
             })}
           </div>
 
-          <DragOverlay>
+          <DragOverlay
+            dropAnimation={{
+              duration: 420,
+              easing: "cubic-bezier(0.34, 1.56, 0.64, 1)",
+            }}
+          >
             {activeTask && <TaskCard task={activeTask} overlay />}
           </DragOverlay>
         </DndContext>

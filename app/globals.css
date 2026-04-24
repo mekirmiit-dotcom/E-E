@@ -127,11 +127,32 @@
     background: linear-gradient(180deg, #ef4444, #dc2626);
   }
 
-  .task-card.dragging {
-    box-shadow: 0 25px 50px rgba(15,23,42,0.18);
-    transform: rotate(1.5deg) scale(1.02);
-    cursor: grabbing;
-    border-color: rgb(99,102,241,0.4);
+  /* Drag overlay — floating card being dragged */
+  .drag-overlay {
+    cursor: grabbing !important;
+    box-shadow:
+      0 32px 64px rgba(15,23,42,0.28),
+      0 12px 24px rgba(15,23,42,0.18),
+      0 0 0 1px rgba(99,102,241,0.25),
+      inset 0 1px 0 rgba(255,255,255,0.8);
+    border-color: rgba(99,102,241,0.3) !important;
+    transform: rotate(3deg) scale(1.04);
+  }
+
+  /* Column shimmer keyframe */
+  @keyframes column-shimmer {
+    0% { opacity: 0; transform: translateX(-100%); }
+    50% { opacity: 1; }
+    100% { opacity: 0; transform: translateX(100%); }
+  }
+
+  /* Drop spring keyframe — card settling into place */
+  @keyframes card-spring-in {
+    0%   { transform: scale(1.04) rotate(3deg); }
+    40%  { transform: scale(0.97) rotate(-0.5deg); }
+    65%  { transform: scale(1.01) rotate(0.3deg); }
+    80%  { transform: scale(0.995) rotate(0deg); }
+    100% { transform: scale(1) rotate(0deg); }
   }
 
   .owner-badge-emin { @apply bg-indigo-50 text-indigo-700 border border-indigo-100; }

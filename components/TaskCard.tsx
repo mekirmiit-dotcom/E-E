@@ -1,5 +1,6 @@
 "use client"
 
+import React from "react"
 import { useSortable } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
 import { useRouter } from "next/navigation"
@@ -40,11 +41,17 @@ export default function TaskCard({ task, overlay = false }: TaskCardProps) {
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: task.id })
+  } = useSortable({
+    id: task.id,
+    transition: {
+      duration: 320,
+      easing: "cubic-bezier(0.25, 1, 0.5, 1)",
+    },
+  })
 
-  const style = {
+  const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
-    transition,
+    transition: isDragging ? "none" : transition ?? undefined,
   }
 
   const done = task.checklist.filter((c) => c.done).length
@@ -69,7 +76,7 @@ export default function TaskCard({ task, overlay = false }: TaskCardProps) {
       className={cn(
         "task-card group animate-stagger-in relative overflow-hidden",
         `priority-${task.priority}`,
-        isDragging && !overlay && "opacity-40",
+        isDragging && !overlay && "opacity-25 scale-95 !shadow-none",
         overlay && "drag-overlay"
       )}
     >
