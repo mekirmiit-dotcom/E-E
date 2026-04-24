@@ -91,9 +91,7 @@ export default function EmrePage() {
                   <ArrowLeft className="h-4 w-4" />
                 </div>
               </Link>
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-md text-white font-bold text-sm">
-                E
-              </div>
+              <img src="/icon-512.png" alt="E&E" className="w-8 h-8 rounded-xl object-cover shadow-md" />
               <div>
                 <h1 className="font-display font-bold text-base text-slate-900 dark:text-slate-100 leading-none">Emre</h1>
                 <p className="text-[10px] font-mono text-muted-foreground">Kişisel Görev Panosu</p>

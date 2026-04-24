@@ -68,6 +68,12 @@
   ::selection { @apply bg-indigo-200/60 text-indigo-900; }
 }
 
+@layer utilities {
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+}
+
 @layer components {
   .glass-card {
     @apply bg-white/70 backdrop-blur-xl border border-white/80;

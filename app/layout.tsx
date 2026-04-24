@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next"
 import "./globals.css"
+import BottomNav from "@/components/BottomNav"
 
 export const metadata: Metadata = {
   title: "İş Takibi — Emin & Emre",
@@ -51,7 +52,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             }}
           />
         </div>
-        {children}
+        <div className="pb-16 md:pb-0">
+          {children}
+        </div>
+        <BottomNav />
       </body>
     </html>
   )

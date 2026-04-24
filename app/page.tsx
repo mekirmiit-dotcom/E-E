@@ -185,11 +185,8 @@ export default function DashboardPage() {
             {/* Logo */}
             <div className="flex items-center gap-3">
               <div className="relative">
-                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 via-indigo-600 to-violet-700 flex items-center justify-center shadow-soft-md relative overflow-hidden">
-                  <span className="absolute left-0.5 text-white font-black text-base leading-none" style={{fontFamily:"Arial Black,sans-serif"}}>E</span>
-                  <span className="absolute right-0.5 text-white/50 font-black text-base leading-none scale-x-[-1]" style={{fontFamily:"Arial Black,sans-serif"}}>E</span>
-                </div>
-                <div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-white animate-pulse" />
+                <img src="/icon-512.png" alt="E&E" className="w-9 h-9 rounded-xl object-cover shadow-soft-md" />
+                <div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-white dark:border-slate-900 animate-pulse" />
               </div>
               <div>
                 <h1 className="font-display font-bold text-[15px] tracking-tight text-slate-900 dark:text-slate-100 leading-none">
