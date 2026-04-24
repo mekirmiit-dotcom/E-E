@@ -4,28 +4,28 @@
   "description": "Emin ve Emre için kişisel iş ve görev takip uygulaması",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#f8f9fc",
+  "background_color": "#3b1f5e",
   "theme_color": "#6366f1",
   "orientation": "portrait-primary",
   "categories": ["productivity", "business"],
   "icons": [
     {
-      "src": "/icon-pwa?size=192",
+      "src": "/icon-512.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icon-pwa?size=512",
+      "src": "/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icon-pwa-maskable?size=512",
-      "sizes": "512x512",
+      "src": "/icon-512.png",
+      "sizes": "1024x1024",
       "type": "image/png",
-      "purpose": "maskable"
+      "purpose": "any maskable"
     }
   ]
 }
