@@ -6,7 +6,9 @@
       "Bash(git push *)",
       "Bash(npx vercel *)",
       "Bash(node *)",
-      "Bash(npm install *)"
+      "Bash(npm install *)",
+      "Bash(curl -s \"https://e-41486s8kq-mekirmiit-dotcoms-projects.vercel.app/\")",
+      "Bash(npx tsc *)"
     ]
   }
 }
