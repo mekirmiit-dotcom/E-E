@@ -93,14 +93,27 @@ export default function TaskWizard({ defaultOwner }: TaskWizardProps) {
     if (!task) {
       console.error("[TaskWizard] createTask failed")
     } else {
-      if (task.status === "done") {
-        await createNotification(task.id, `"${task.title}" tamamlandı 🎉`, "completed")
-      } else if (task.due_date) {
-        await createNotification(task.id, `"${task.title}" görevi ${format(parseISO(task.due_date), "d MMM yyyy", { locale: tr })} tarihinde teslim edilmeli`, "reminder")
-      } else if (task.owner !== "shared") {
-        await createNotification(task.id, `"${task.title}" görevi ${OWNER_LABELS[task.owner]}'e atandı`, "assigned")
+      // Görev oluşturuldu bildirimi
+      if (task.owner === "shared") {
+        await createNotification(
+          task.id,
+          `📋 Yeni ortak görev oluşturuldu: "${task.title}"`,
+          "assigned"
+        )
       } else {
-        await createNotification(task.id, `"${task.title}" görevi oluşturuldu`, "assigned")
+        await createNotification(
+          task.id,
+          `📋 "${task.title}" görevi ${OWNER_LABELS[task.owner]}'e atandı`,
+          "assigned"
+        )
+      }
+      // Ayrıca son tarih varsa hatırlatıcı da ekle
+      if (task.due_date) {
+        await createNotification(
+          task.id,
+          `⏰ "${task.title}" son tarihi: ${format(parseISO(task.due_date), "d MMMM yyyy", { locale: tr })}`,
+          "reminder"
+        )
       }
     }
     setSaving(false)

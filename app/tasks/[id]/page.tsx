@@ -108,7 +108,7 @@ export default function TaskDetailPage({ params }: { params: { id: string } }) {
     const content = commentText.trim()
     if (!content || !task) return
     setSendingComment(true)
-    const newComment = await addComment(task.id, commentAuthor, content)
+    const newComment = await addComment(task.id, task.title, commentAuthor, content)
     if (newComment) {
       // Doğrudan state'e ekle — realtime yoksa da çalışsın
       setComments((prev) =>
@@ -131,44 +131,61 @@ export default function TaskDetailPage({ params }: { params: { id: string } }) {
     setSaving(false)
     if (!updated) return
 
-    // Status değişiklikleri
+    const statusLabels: Record<string, string> = {
+      todo: "Yapılacak", in_progress: "Devam Ediyor", review: "İncelemede", done: "Tamamlandı",
+    }
+
+    // Durum değişikliği
     if (status !== task.status) {
       if (status === "done") {
-        await createNotification(task.id, `"${title}" tamamlandı 🎉`, "completed")
-      } else if (status === "in_progress") {
-        await createNotification(task.id, `"${title}" başladı 🚀`, "assigned")
-      } else if (status === "review") {
-        await createNotification(task.id, `"${title}" incelemeye alındı 🔍`, "assigned")
-      } else if (status === "todo") {
-        await createNotification(task.id, `"${title}" beklemeye alındı`, "assigned")
+        await createNotification(task.id, `✅ "${title}" tamamlandı — tebrikler!`, "completed")
+      } else {
+        await createNotification(
+          task.id,
+          `"${title}" durumu "${statusLabels[task.status]}" → "${statusLabels[status]}" olarak değişti`,
+          "assigned"
+        )
       }
     }
 
     // Sahip değişikliği
     if (owner !== task.owner) {
-      const ownerMsg = owner === "shared"
-        ? `"${title}" ortak göreve dönüştürüldü`
-        : `"${title}" ${OWNER_LABELS[owner]}'e atandı`
-      await createNotification(task.id, ownerMsg, "assigned")
+      const from = OWNER_LABELS[task.owner]
+      const to = owner === "shared" ? "Ortak" : OWNER_LABELS[owner]
+      await createNotification(
+        task.id,
+        owner === "shared"
+          ? `"${title}" ortak göreve dönüştürüldü (${from} → Ortak)`
+          : `"${title}" görevi ${to}'e atandı`,
+        "assigned"
+      )
     }
 
     // Öncelik değişikliği
     if (priority !== task.priority) {
       const pLabel: Record<string, string> = { low: "Düşük", medium: "Orta", high: "Yüksek", critical: "Kritik" }
-      await createNotification(task.id, `"${title}" önceliği ${pLabel[priority]} olarak güncellendi`, "reminder")
+      await createNotification(
+        task.id,
+        `"${title}" önceliği ${pLabel[task.priority]} → ${pLabel[priority]} olarak güncellendi`,
+        "reminder"
+      )
     }
 
     // Son tarih değişikliği
     if (dueDate !== (task.due_date || "")) {
       const msg = dueDate
-        ? `"${title}" son tarihi ${dueDate} olarak ayarlandı ⏰`
-        : `"${title}" son tarihi kaldırıldı`
+        ? `"${title}" son tarihi ${format(new Date(dueDate), "d MMMM yyyy", { locale: tr })} olarak ayarlandı ⏰`
+        : `"${title}" görevinin son tarihi kaldırıldı`
       await createNotification(task.id, msg, "reminder")
     }
 
     // Başlık değişikliği
     if (title !== task.title) {
-      await createNotification(task.id, `Görev adı "${task.title}" → "${title}" olarak güncellendi`, "assigned")
+      await createNotification(
+        task.id,
+        `Görev adı güncellendi: "${task.title}" → "${title}"`,
+        "assigned"
+      )
     }
 
     setTask(updated)

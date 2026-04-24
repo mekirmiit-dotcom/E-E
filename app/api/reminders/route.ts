@@ -58,7 +58,7 @@ export async function GET() {
 
   const { data: tasks } = await supabase
     .from("tasks")
-    .select("id, title, due_date, status")
+    .select("id, title, due_date, status, owner")
     .not("due_date", "is", null)
     .neq("status", "done")
     .in("due_date", [todayStr, in1day, in2days])
@@ -67,22 +67,26 @@ export async function GET() {
 
   let sent = 0
 
+  const ownerLabel: Record<string, string> = { emin: "Emin", emre: "Emre", shared: "Ortak" }
+
   for (const task of tasks) {
+    const owner = ownerLabel[task.owner as string] ?? "Ortak"
+
     if (task.due_date === in2days) {
       if (await alreadySent(task.id, "2 gün")) continue
-      const msg = `"${task.title}" görevi 2 gün sonra teslim edilmeli!`
+      const msg = `⏰ "${task.title}" (${owner}) — 2 gün sonra teslim edilmeli!`
       await supabase.from("notifications").insert({ task_id: task.id, message: msg, type: "reminder", read: false })
       await sendPush("⏰ 2 Gün Kaldı", msg)
       sent++
     } else if (task.due_date === in1day) {
       if (await alreadySent(task.id, "1 gün")) continue
-      const msg = `"${task.title}" görevi yarın teslim edilmeli!`
+      const msg = `⏰ "${task.title}" (${owner}) — yarın son gün!`
       await supabase.from("notifications").insert({ task_id: task.id, message: msg, type: "reminder", read: false })
-      await sendPush("⏰ 1 Gün Kaldı", msg)
+      await sendPush("⏰ Yarın Son Gün!", msg)
       sent++
     } else if (task.due_date === todayStr) {
       if (await alreadySent(task.id, "bugün son")) continue
-      const msg = `"${task.title}" görevi bugün son gün!`
+      const msg = `🚨 "${task.title}" (${owner}) — bugün son gün!`
       await supabase.from("notifications").insert({ task_id: task.id, message: msg, type: "overdue", read: false })
       await sendPush("🚨 Bugün Son Gün!", msg)
       sent++

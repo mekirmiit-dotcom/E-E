@@ -35,7 +35,7 @@ export async function createNotification(
 
   // Send push to all subscribed devices
   try {
-    const typeEmoji = { reminder: "⏰", overdue: "🚨", completed: "✅", assigned: "👤" }
+    const typeEmoji = { reminder: "⏰", overdue: "🚨", completed: "✅", assigned: "👤", comment: "💬" }
     await fetch("/api/push", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
