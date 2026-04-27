@@ -23,6 +23,7 @@ import {
   AlertTriangle,
   CheckCircle2,
   Sparkles,
+  CalendarDays,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -226,6 +227,14 @@ export default function DashboardPage() {
                 >
                   <span className="w-6 h-6 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center font-bold text-white text-[10px] shadow-sm">E</span>
                   Emre
+                </Link>
+              </div>
+                <Link
+                  href="/calendar"
+                  className="group flex items-center gap-2 pl-2 pr-3 py-1 rounded-full text-xs font-medium bg-white dark:bg-slate-800 hover:bg-violet-50/80 dark:hover:bg-violet-900/30 text-slate-700 dark:text-slate-300 hover:text-violet-700 dark:hover:text-violet-300 transition-all border border-slate-200/70 dark:border-slate-700 hover:border-violet-200 dark:hover:border-violet-700"
+                >
+                  <CalendarDays className="h-3.5 w-3.5" />
+                  Takvim
                 </Link>
               </div>
               <div className="w-px h-6 bg-slate-200 dark:bg-slate-700 mx-1 hidden sm:block" />
