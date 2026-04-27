@@ -9,7 +9,8 @@
       "Bash(npm install *)",
       "Bash(curl -s \"https://e-41486s8kq-mekirmiit-dotcoms-projects.vercel.app/\")",
       "Bash(npx tsc *)",
-      "Bash(identify \"/c/Users/Elitebook/Downloads/is-takibi/public/icon-512.png\")"
+      "Bash(identify \"/c/Users/Elitebook/Downloads/is-takibi/public/icon-512.png\")",
+      "Bash(npx web-push *)"
     ]
   }
 }

@@ -44,7 +44,7 @@ export async function createNotification(
     await fetch("/api/push", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title, body: message }),
+      body: JSON.stringify({ title, body: message, task_id: taskId }),
     })
   } catch (e) {
     console.error("[push] error:", e)

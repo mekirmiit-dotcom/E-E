@@ -9,24 +9,31 @@ webpush.setVapidDetails(
 )
 
 export async function POST(req: NextRequest) {
-  const { title, body, icon } = await req.json()
+  const { title, body, task_id } = await req.json()
 
   const { data: subs } = await supabase.from("push_subscriptions").select("*")
   if (!subs?.length) return NextResponse.json({ ok: true, sent: 0 })
 
-  const payload = JSON.stringify({ title, body, icon: icon || "/icon-pwa?size=192" })
+  const payload = JSON.stringify({
+    title: title || "İş Takibi",
+    body:  body  || "",
+    icon:  "/icon-512.png",
+    task_id: task_id || null,
+  })
 
   const results = await Promise.allSettled(
     subs.map((sub) =>
-      webpush.sendNotification(
-        { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
-        payload
-      ).catch(async (err) => {
-        if (err.statusCode === 410) {
-          await supabase.from("push_subscriptions").delete().eq("endpoint", sub.endpoint)
-        }
-        throw err
-      })
+      webpush
+        .sendNotification(
+          { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
+          payload
+        )
+        .catch(async (err) => {
+          if (err.statusCode === 410 || err.statusCode === 404) {
+            await supabase.from("push_subscriptions").delete().eq("endpoint", sub.endpoint)
+          }
+          throw err
+        })
     )
   )
 
