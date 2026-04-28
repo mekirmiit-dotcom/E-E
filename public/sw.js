@@ -13,7 +13,8 @@ self.addEventListener("push", (event) => {
   const title   = data.title || "İş Takibi"
   const body    = data.body  || ""
   const taskId  = data.task_id || null
-  const taskUrl = taskId ? `/tasks/${taskId}` : "/"
+  const explicitUrl = data.url || null
+  const taskUrl = explicitUrl || (taskId ? `/tasks/${taskId}` : "/")
 
   const options = {
     body,

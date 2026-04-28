@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { Bell, X, Check, CheckCheck } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -19,6 +20,7 @@ const typeConfig = {
 }
 
 export default function NotificationBell() {
+  const router = useRouter()
   const [open, setOpen] = useState(false)
   const [notifs, setNotifs] = useState<Notification[]>([])
   const [pushEnabled, setPushEnabled] = useState(false)
@@ -168,12 +170,15 @@ export default function NotificationBell() {
             ) : (
               notifs.map((notif) => {
                 const cfg = typeConfig[notif.type]
+                const isSummary = notif.type === "summary"
                 return (
                   <div
                     key={notif.id}
+                    onClick={() => { if (isSummary) { setOpen(false); router.push("/summary") } }}
                     className={cn(
                       "flex gap-3 px-4 py-3 border-b border-slate-100 dark:border-slate-800 last:border-b-0 transition-colors hover:bg-slate-50/60 dark:hover:bg-slate-800/60 group",
-                      !notif.read && "bg-indigo-50/30 dark:bg-indigo-900/10"
+                      !notif.read && "bg-indigo-50/30 dark:bg-indigo-900/10",
+                      isSummary && "cursor-pointer hover:bg-violet-50/50 dark:hover:bg-violet-900/10"
                     )}
                   >
                     <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center text-base flex-shrink-0 mt-0.5", cfg.color)}>
