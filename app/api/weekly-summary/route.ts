@@ -38,7 +38,17 @@ async function sendPush(title: string, body: string) {
   )
 }
 
-export async function GET() {
+export async function GET(req: Request) {
+  // Sadece Pazartesi çalışsın (cron dışında deploy vb. tetiklenirse atla)
+  // ?force=1 ile manuel test edilebilir
+  const url = new URL(req.url)
+  const force = url.searchParams.get("force") === "1"
+  const nowTR = new Date(Date.now() + 3 * 60 * 60 * 1000) // UTC+3
+  const dayOfWeek = nowTR.getUTCDay() // 0=Pazar, 1=Pazartesi
+  if (!force && dayOfWeek !== 1) {
+    return NextResponse.json({ ok: true, skipped: true, reason: "not Monday" })
+  }
+
   const weekStart = getWeekStart()
   const today = new Date().toISOString().split("T")[0]
 
