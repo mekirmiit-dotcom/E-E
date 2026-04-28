@@ -6,7 +6,7 @@ import { format, parseISO } from "date-fns"
 import { tr } from "date-fns/locale"
 import {
   ArrowLeft, Edit2, Save, Trash2, Check, X, Plus, Calendar,
-  Tag, User, AlertCircle, Clock, CheckSquare, Loader2, MessageCircle, Send, Trash
+  Tag, User, AlertCircle, Clock, CheckSquare, Loader2, MessageCircle, Send, Trash, Paperclip
 } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -25,6 +25,7 @@ import type { Task, Owner, Priority, Status, ChecklistItem, Comment } from "@/li
 import { createNotification } from "@/lib/notifications"
 import { getComments, addComment, deleteComment } from "@/lib/comments"
 import { supabase } from "@/lib/supabase"
+import FileAttachments from "@/components/FileAttachments"
 
 export default function TaskDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter()
@@ -532,6 +533,15 @@ export default function TaskDetailPage({ params }: { params: { id: string } }) {
               ))}
             </div>
           )}
+        </div>
+
+        {/* Dosyalar */}
+        <div className="glass-card rounded-2xl p-6">
+          <h3 className="font-display font-semibold text-sm text-slate-800 dark:text-slate-200 flex items-center gap-2 mb-5">
+            <Paperclip className="h-4 w-4" />
+            Dosyalar
+          </h3>
+          <FileAttachments taskId={params.id} />
         </div>
 
         {/* Comments */}
