@@ -47,6 +47,7 @@ export default function DashboardPage() {
   const [search, setSearch] = useState("")
   const [filterStatus, setFilterStatus] = useState<FilterStatus>("all")
   const [mounted, setMounted] = useState(false)
+  const [settledId, setSettledId] = useState<string | null>(null)
 
   useEffect(() => {
     loadTasks().then((data) => {
@@ -101,6 +102,7 @@ export default function DashboardPage() {
     const { active, over } = event
     setActiveTask(null)
     if (!over) return
+    const droppedId = active.id as string
 
     const activeTask = tasks.find((t) => t.id === active.id)
     if (!activeTask) return
@@ -128,10 +130,20 @@ export default function DashboardPage() {
       }))
       const rest = updatedTasks.filter((t) => t.owner !== overOwner)
       setTasks([...rest, ...reordered])
+      triggerSettled(droppedId)
       return
     }
 
     setTasks(updatedTasks)
+    triggerSettled(droppedId)
+  }
+
+  function triggerSettled(id: string) {
+    // Wait for DragOverlay drop animation (420ms) then play settle pop
+    setTimeout(() => {
+      setSettledId(id)
+      setTimeout(() => setSettledId(null), 550)
+    }, 430)
   }
 
   const totalTasks = tasks.length
@@ -399,6 +411,7 @@ export default function DashboardPage() {
                     done: allColTasks.filter((t) => t.status === "done").length,
                     overdue: allColTasks.filter(isOverdue).length,
                   }}
+                  settledId={settledId}
                 />
               )
             })}

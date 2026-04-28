@@ -18,6 +18,7 @@ interface ColumnProps {
   color: string
   accentColor: string
   stats: { total: number; done: number; overdue: number }
+  settledId?: string | null
 }
 
 export default function Column({
@@ -28,6 +29,7 @@ export default function Column({
   color,
   accentColor,
   stats,
+  settledId,
 }: ColumnProps) {
   const router = useRouter()
   const { setNodeRef, isOver } = useDroppable({ id: owner })
@@ -53,9 +55,15 @@ export default function Column({
   }[owner]
 
   const glowColor = {
-    emin: "from-indigo-400/10 via-indigo-300/5 to-transparent",
-    emre: "from-amber-400/10 via-amber-300/5 to-transparent",
-    shared: "from-emerald-400/10 via-emerald-300/5 to-transparent",
+    emin: "from-indigo-400/15 via-indigo-300/8 to-transparent",
+    emre: "from-amber-400/15 via-amber-300/8 to-transparent",
+    shared: "from-emerald-400/15 via-emerald-300/8 to-transparent",
+  }[owner]
+
+  const columnGlowShadow = {
+    emin: "0 0 0 2px rgba(99,102,241,0.5), 0 0 32px 4px rgba(99,102,241,0.12)",
+    emre: "0 0 0 2px rgba(245,158,11,0.5), 0 0 32px 4px rgba(245,158,11,0.12)",
+    shared: "0 0 0 2px rgba(16,185,129,0.5), 0 0 32px 4px rgba(16,185,129,0.12)",
   }[owner]
 
   const shimmerColor = {
@@ -73,10 +81,11 @@ export default function Column({
   return (
     <div
       ref={setNodeRef}
+      style={isOver ? { boxShadow: columnGlowShadow } : undefined}
       className={cn(
         "kanban-column relative transition-all duration-200",
         `column-${owner}`,
-        isOver && `ring-2 ring-offset-2 ring-offset-background ${ringColor} border ${borderGlow} scale-[1.01]`
+        isOver && `border ${borderGlow} scale-[1.01]`
       )}
     >
       {/* Glow overlay when dragging over */}
@@ -226,7 +235,9 @@ export default function Column({
               </button>
             </div>
           ) : (
-            tasks.map((task) => <TaskCard key={task.id} task={task} />)
+            tasks.map((task) => (
+              <TaskCard key={task.id} task={task} settled={task.id === settledId} />
+            ))
           )}
         </div>
       </SortableContext>

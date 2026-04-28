@@ -30,9 +30,10 @@ import {
 interface TaskCardProps {
   task: Task
   overlay?: boolean
+  settled?: boolean
 }
 
-export default function TaskCard({ task, overlay = false }: TaskCardProps) {
+export default function TaskCard({ task, overlay = false, settled = false }: TaskCardProps) {
   const router = useRouter()
   const {
     attributes,
@@ -44,8 +45,8 @@ export default function TaskCard({ task, overlay = false }: TaskCardProps) {
   } = useSortable({
     id: task.id,
     transition: {
-      duration: 320,
-      easing: "cubic-bezier(0.25, 1, 0.5, 1)",
+      duration: 200,
+      easing: "ease",
     },
   })
 
@@ -76,8 +77,9 @@ export default function TaskCard({ task, overlay = false }: TaskCardProps) {
       className={cn(
         "task-card group animate-stagger-in relative overflow-hidden",
         `priority-${task.priority}`,
-        isDragging && !overlay && "opacity-25 scale-95 !shadow-none",
-        overlay && "drag-overlay"
+        isDragging && !overlay && "drag-placeholder",
+        overlay && "drag-overlay",
+        settled && !isDragging && "card-settled"
       )}
     >
       {/* Color strip */}
