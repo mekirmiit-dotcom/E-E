@@ -2,7 +2,7 @@
 
 import { useDroppable } from "@dnd-kit/core"
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable"
-import { motion, AnimatePresence } from "framer-motion"
+import { motion, AnimatePresence, useAnimation } from "framer-motion"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Plus, ExternalLink, MoreHorizontal } from "lucide-react"
@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import TaskCard from "./TaskCard"
 import type { Task, Owner } from "@/lib/tasks"
+import { useEffect, useRef } from "react"
 
 interface ColumnProps {
   owner: Owner
@@ -34,6 +35,20 @@ export default function Column({
 }: ColumnProps) {
   const router = useRouter()
   const { setNodeRef, isOver } = useDroppable({ id: owner })
+  const rippleControls = useAnimation()
+  const prevIsOver = useRef(false)
+
+  // Ripple tetikleyici: isOver false→true geçişinde
+  useEffect(() => {
+    if (isOver && !prevIsOver.current) {
+      rippleControls.start({
+        scale: [1, 1.06, 1],
+        opacity: [0.7, 0, 0],
+        transition: { duration: 0.55, ease: "easeOut" },
+      })
+    }
+    prevIsOver.current = isOver
+  }, [isOver, rippleControls])
 
   const progress = stats.total > 0 ? Math.round((stats.done / stats.total) * 100) : 0
 
@@ -73,6 +88,12 @@ export default function Column({
     shared: "0 0 0 2px rgba(16,185,129,0.5), 0 0 32px 4px rgba(16,185,129,0.12)",
   }[owner]
 
+  const rippleBorder = {
+    emin: "2px solid rgba(99,102,241,0.6)",
+    emre: "2px solid rgba(245,158,11,0.6)",
+    shared: "2px solid rgba(16,185,129,0.6)",
+  }[owner]
+
   return (
     <motion.div
       ref={setNodeRef}
@@ -88,7 +109,14 @@ export default function Column({
       }
       transition={{ duration: 0.18, ease: "easeOut" }}
     >
-      {/* Glow overlay when dragging over */}
+      {/* Ripple burst — sütuna ilk girildiğinde */}
+      <motion.div
+        className="absolute inset-0 rounded-2xl pointer-events-none z-0"
+        style={{ border: rippleBorder, opacity: 0 }}
+        animate={rippleControls}
+      />
+
+      {/* Glow overlay — sürükleme devam ederken */}
       <AnimatePresence>
         {isOver && (
           <motion.div
@@ -250,13 +278,22 @@ export default function Column({
               {tasks.map((task) => (
                 <motion.div
                   key={task.id}
-                  initial={{ opacity: 0, y: -10, scale: 0.97 }}
+                  initial={{ opacity: 0, y: -14, scale: 0.95 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.15, ease: "easeIn" } }}
-                  transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                  exit={{
+                    opacity: 0,
+                    scale: 0.93,
+                    y: 6,
+                    transition: { duration: 0.18, ease: [0.4, 0, 1, 1] },
+                  }}
+                  transition={{
+                    type: "spring",
+                    stiffness: 300,
+                    damping: 25,
+                  }}
                   layout="position"
                 >
-                  <TaskCard key={task.id} task={task} settled={task.id === settledId} />
+                  <TaskCard task={task} settled={task.id === settledId} />
                 </motion.div>
               ))}
             </AnimatePresence>

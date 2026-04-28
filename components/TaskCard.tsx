@@ -34,7 +34,7 @@ interface TaskCardProps {
   settled?: boolean
 }
 
-const DRAG_SHADOW = "0 24px 48px rgba(15,23,42,0.22), 0 8px 16px rgba(15,23,42,0.12), 0 0 0 1.5px rgba(99,102,241,0.4), inset 0 1px 0 rgba(255,255,255,0.9)"
+const DRAG_SHADOW = "0 32px 64px rgba(15,23,42,0.32), 0 16px 32px rgba(15,23,42,0.18), 0 0 0 1.5px rgba(99,102,241,0.5), inset 0 1px 0 rgba(255,255,255,0.95)"
 const IDLE_SHADOW = "0 1px 2px rgba(15,23,42,0.03)"
 const HOVER_SHADOW = "0 4px 6px rgba(15,23,42,0.03), 0 12px 24px rgba(15,23,42,0.06)"
 
@@ -77,16 +77,28 @@ export default function TaskCard({ task, overlay = false, settled = false }: Tas
 
   // framer-motion variants
   const motionAnimate = overlay
-    ? { scale: 1.05, rotate: 3.5, opacity: 1, boxShadow: DRAG_SHADOW }
+    ? {
+        scale: 1.05,
+        rotate: 3.5,
+        opacity: 1,
+        boxShadow: DRAG_SHADOW,
+        filter: "brightness(1.04) saturate(1.08)",
+      }
     : isDragging
-    ? { scale: 0.96, rotate: 0, opacity: 0.28, boxShadow: "none" }
+    ? { scale: 0.96, rotate: 0, opacity: 0.25, boxShadow: "none", filter: "brightness(1)" }
     : settled
-    ? { scale: [0.93, 1.04, 0.99, 1] as number[], rotate: 0, opacity: 1, boxShadow: HOVER_SHADOW }
-    : { scale: 1, rotate: 0, opacity: 1, boxShadow: IDLE_SHADOW }
+    ? {
+        scale: [1, 0.94, 1.04, 0.99, 1] as number[],
+        opacity: 1,
+        rotate: 0,
+        filter: "brightness(1)",
+        boxShadow: IDLE_SHADOW,
+      }
+    : { scale: 1, rotate: 0, opacity: 1, boxShadow: IDLE_SHADOW, filter: "brightness(1)" }
 
   const motionTransition = settled
-    ? { duration: 0.45, times: [0, 0.5, 0.75, 1], ease: "easeOut" as const }
-    : { type: "spring" as const, stiffness: 480, damping: 34 }
+    ? { duration: 0.5, times: [0, 0.25, 0.6, 0.8, 1], ease: "easeOut" as const }
+    : { type: "spring" as const, stiffness: 300, damping: 25 }
 
   return (
     // Outer div: dnd-kit controls position (transform/transition)
@@ -104,8 +116,13 @@ export default function TaskCard({ task, overlay = false, settled = false }: Tas
           "task-card group animate-stagger-in relative overflow-hidden",
           `priority-${task.priority}`,
           (isDragging && !overlay) && "!border-dashed !border-slate-300/50 dark:!border-slate-600/40 !bg-slate-50/40 dark:!bg-slate-800/20",
-          overlay && "!border-indigo-300/60 dark:!border-indigo-700/50 cursor-grabbing",
+          overlay && "!border-indigo-300/60 dark:!border-indigo-700/50 cursor-grabbing task-card-overlay",
         )}
+        style={overlay ? {
+          backdropFilter: "blur(12px)",
+          WebkitBackdropFilter: "blur(12px)",
+          background: "rgba(255, 255, 255, 0.88)",
+        } : undefined}
         initial={false}
         animate={motionAnimate}
         transition={motionTransition}
