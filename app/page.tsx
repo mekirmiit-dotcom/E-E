@@ -71,7 +71,7 @@ export default function DashboardPage() {
 
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 5 } }),
-    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 8 } })
+    useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 5 } })
   )
 
   const getOwnerTasks = useCallback(
@@ -95,12 +95,24 @@ export default function DashboardPage() {
     [tasks, search, filterStatus]
   )
 
+  function lockScroll() {
+    document.body.style.overflow = "hidden"
+    document.body.style.touchAction = "none"
+  }
+
+  function unlockScroll() {
+    document.body.style.overflow = ""
+    document.body.style.touchAction = ""
+  }
+
   function handleDragStart(event: DragStartEvent) {
     const task = tasks.find((t) => t.id === event.active.id)
     setActiveTask(task || null)
+    lockScroll()
   }
 
   function handleDragEnd(event: DragEndEvent) {
+    unlockScroll()
     const { active, over } = event
     setActiveTask(null)
     if (!over) return
@@ -394,37 +406,33 @@ export default function DashboardPage() {
           sensors={sensors}
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
+          onDragCancel={unlockScroll}
           autoScroll={{
-            threshold: { x: 0.2, y: 0.2 },
+            threshold: { x: 0, y: 0.2 },
             acceleration: 12,
             interval: 5,
           }}
         >
-          {/* Mobile: yatay scroll snap — masaüstü: 3 sütun grid */}
-          <div className="flex md:grid md:grid-cols-3 gap-4 overflow-x-auto md:overflow-x-visible pb-2 md:pb-0 snap-x snap-mandatory md:snap-none -mx-4 px-4 md:mx-0 md:px-0 stagger">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 stagger">
             {columns.map((col) => {
               const colTasks = getOwnerTasks(col.owner)
               const allColTasks = tasks.filter((t) => t.owner === col.owner)
               return (
-                <div
+                <Column
                   key={col.owner}
-                  className="min-w-[88vw] max-w-sm md:min-w-0 md:max-w-none snap-start md:snap-align-none flex-shrink-0 md:flex-shrink md:flex-1"
-                >
-                  <Column
-                    owner={col.owner}
-                    tasks={colTasks}
-                    label={col.label}
-                    emoji={col.emoji}
-                    color={col.color}
-                    accentColor={col.accentColor}
-                    stats={{
-                      total: allColTasks.length,
-                      done: allColTasks.filter((t) => t.status === "done").length,
-                      overdue: allColTasks.filter(isOverdue).length,
-                    }}
-                    settledId={settledId}
-                  />
-                </div>
+                  owner={col.owner}
+                  tasks={colTasks}
+                  label={col.label}
+                  emoji={col.emoji}
+                  color={col.color}
+                  accentColor={col.accentColor}
+                  stats={{
+                    total: allColTasks.length,
+                    done: allColTasks.filter((t) => t.status === "done").length,
+                    overdue: allColTasks.filter(isOverdue).length,
+                  }}
+                  settledId={settledId}
+                />
               )
             })}
           </div>

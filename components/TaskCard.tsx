@@ -102,13 +102,16 @@ export default function TaskCard({ task, overlay = false, settled = false }: Tas
 
   return (
     // Outer div: dnd-kit controls position (transform/transition)
-    // Whole card is the drag handle for easy mobile swiping
     <div
       ref={setNodeRef}
-      style={style}
+      style={{
+        ...style,
+        // touch-action: none yalnızca drag aktifken — normal zamanda sayfa scroll'u çalışsın
+        touchAction: isDragging || overlay ? "none" : "auto",
+      }}
       {...attributes}
       {...listeners}
-      className="touch-none select-none"
+      className="select-none"
     >
       {/* Inner motion.div: framer-motion controls visual state */}
       <motion.div
