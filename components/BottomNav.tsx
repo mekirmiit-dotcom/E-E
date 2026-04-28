@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { Home, CalendarDays, Plus } from "lucide-react"
+import { Home, CalendarDays, BarChart3, Plus } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 export default function BottomNav() {
@@ -14,6 +14,7 @@ export default function BottomNav() {
     { href: "/emin", label: "Emin", icon: null, initial: "E", color: "from-indigo-400 to-indigo-600" },
     { href: "/emre", label: "Emre", icon: null, initial: "E", color: "from-amber-400 to-amber-600" },
     { href: "/calendar", label: "Takvim", icon: CalendarDays },
+    { href: "/summary", label: "Özet", icon: BarChart3 },
   ]
 
   return (

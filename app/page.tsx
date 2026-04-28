@@ -24,6 +24,7 @@ import {
   CheckCircle2,
   Sparkles,
   CalendarDays,
+  BarChart3,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -234,6 +235,13 @@ export default function DashboardPage() {
                 >
                   <CalendarDays className="h-3.5 w-3.5" />
                   Takvim
+                </Link>
+                <Link
+                  href="/summary"
+                  className="group flex items-center gap-2 pl-2 pr-3 py-1 rounded-full text-xs font-medium bg-white dark:bg-slate-800 hover:bg-emerald-50/80 dark:hover:bg-emerald-900/30 text-slate-700 dark:text-slate-300 hover:text-emerald-700 dark:hover:text-emerald-300 transition-all border border-slate-200/70 dark:border-slate-700 hover:border-emerald-200 dark:hover:border-emerald-700"
+                >
+                  <BarChart3 className="h-3.5 w-3.5" />
+                  Özet
                 </Link>
               </div>
               <div className="w-px h-6 bg-slate-200 dark:bg-slate-700 mx-1 hidden sm:block" />

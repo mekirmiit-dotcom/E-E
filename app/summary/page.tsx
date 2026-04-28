@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import {
@@ -9,48 +9,103 @@ import {
   AlertTriangle,
   Trophy,
   BarChart3,
-  Calendar,
-  User,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { loadTasks, isOverdue, PRIORITY_LABELS, PRIORITY_COLORS } from "@/lib/tasks"
 import type { Task } from "@/lib/tasks"
-import { format, startOfWeek, endOfWeek, isWithinInterval, parseISO } from "date-fns"
+import { supabase } from "@/lib/supabase"
+import {
+  format,
+  startOfWeek,
+  endOfWeek,
+  startOfMonth,
+  endOfMonth,
+  subWeeks,
+  subMonths,
+  isWithinInterval,
+  parseISO,
+} from "date-fns"
 import { tr } from "date-fns/locale"
+
+type Period = "this_week" | "last_week" | "this_month" | "last_month"
+
+type WeeklySummary = {
+  id: string
+  week_start: string
+  week_end: string
+  total_completed: number
+  total_overdue: number
+  emin_completed: number
+  emre_completed: number
+  created_at: string
+}
+
+const PERIOD_OPTIONS: { value: Period; label: string }[] = [
+  { value: "this_week",   label: "Bu Hafta" },
+  { value: "last_week",   label: "Geçen Hafta" },
+  { value: "this_month",  label: "Bu Ay" },
+  { value: "last_month",  label: "Geçen Ay" },
+]
+
+function getPeriodInterval(period: Period): { start: Date; end: Date } {
+  const now = new Date()
+  switch (period) {
+    case "this_week":
+      return { start: startOfWeek(now, { weekStartsOn: 1 }), end: endOfWeek(now, { weekStartsOn: 1 }) }
+    case "last_week":
+      return { start: startOfWeek(subWeeks(now, 1), { weekStartsOn: 1 }), end: endOfWeek(subWeeks(now, 1), { weekStartsOn: 1 }) }
+    case "this_month":
+      return { start: startOfMonth(now), end: endOfMonth(now) }
+    case "last_month":
+      return { start: startOfMonth(subMonths(now, 1)), end: endOfMonth(subMonths(now, 1)) }
+  }
+}
 
 export default function SummaryPage() {
   const router = useRouter()
   const [tasks, setTasks] = useState<Task[]>([])
+  const [period, setPeriod] = useState<Period>("this_week")
+  const [history, setHistory] = useState<WeeklySummary[]>([])
+  const [expandedId, setExpandedId] = useState<string | null>(null)
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
     loadTasks().then((data) => { setTasks(data); setMounted(true) })
+    supabase
+      .from("weekly_summaries")
+      .select("*")
+      .order("week_start", { ascending: false })
+      .limit(12)
+      .then(({ data }) => { if (data) setHistory(data) })
   }, [])
 
-  const now = new Date()
-  const weekStart = startOfWeek(now, { weekStartsOn: 1 })
-  const weekEnd = endOfWeek(now, { weekStartsOn: 1 })
+  const interval = useMemo(() => getPeriodInterval(period), [period])
 
-  const completedThisWeek = tasks.filter(
-    (t) =>
-      t.status === "done" &&
-      t.updated_at &&
-      isWithinInterval(new Date(t.updated_at), { start: weekStart, end: weekEnd })
+  const completedInPeriod = useMemo(() =>
+    tasks.filter(
+      (t) =>
+        t.status === "done" &&
+        t.updated_at &&
+        isWithinInterval(new Date(t.updated_at), interval)
+    ),
+    [tasks, interval]
   )
-  const overdueTasks = tasks.filter(isOverdue)
-  const eminCompleted = completedThisWeek.filter((t) => t.owner === "emin")
-  const emreCompleted = completedThisWeek.filter((t) => t.owner === "emre")
 
+  const overdueTasks = useMemo(() => tasks.filter(isOverdue), [tasks])
+
+  const eminCompleted = completedInPeriod.filter((t) => t.owner === "emin")
+  const emreCompleted = completedInPeriod.filter((t) => t.owner === "emre")
   const eminCount = eminCompleted.length
   const emreCount = emreCompleted.length
-  const total = eminCount + emreCount
+  const vsTotal = eminCount + emreCount
+  const eminPct = vsTotal > 0 ? Math.round((eminCount / vsTotal) * 100) : 50
+  const emrePct = vsTotal > 0 ? 100 - eminPct : 50
+  const winner = eminCount > emreCount ? "emin" : emreCount > eminCount ? "emre" : ""
 
-  const eminPct = total > 0 ? Math.round((eminCount / total) * 100) : 50
-  const emrePct = total > 0 ? 100 - eminPct : 50
-
-  let winner = ""
-  if (eminCount > emreCount) winner = "emin"
-  else if (emreCount > eminCount) winner = "emre"
+  const periodLabel = PERIOD_OPTIONS.find((o) => o.value === period)?.label ?? ""
+  const periodRange = `${format(interval.start, "d MMM", { locale: tr })} – ${format(interval.end, "d MMM yyyy", { locale: tr })}`
 
   if (!mounted) return null
 
@@ -59,33 +114,52 @@ export default function SummaryPage() {
       {/* Header */}
       <header className="sticky top-0 z-40 border-b border-slate-200/60 dark:border-slate-700/60 bg-white/75 dark:bg-slate-900/80 backdrop-blur-xl">
         <div className="max-w-2xl mx-auto px-4 sm:px-6">
-          <div className="flex items-center gap-3 h-16">
-            <button
-              onClick={() => router.back()}
-              className="w-8 h-8 rounded-xl flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-            >
-              <ChevronLeft className="h-5 w-5 text-slate-500" />
-            </button>
-            <div>
-              <h1 className="font-display font-bold text-[15px] text-slate-900 dark:text-slate-100 leading-none">
-                Haftalık Özet
-              </h1>
-              <p className="text-[10px] font-mono text-slate-500 dark:text-slate-400 mt-0.5 capitalize">
-                {format(weekStart, "d MMM", { locale: tr })} – {format(weekEnd, "d MMM yyyy", { locale: tr })}
-              </p>
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => router.back()}
+                className="w-8 h-8 rounded-xl flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              >
+                <ChevronLeft className="h-5 w-5 text-slate-500" />
+              </button>
+              <div>
+                <h1 className="font-display font-bold text-[15px] text-slate-900 dark:text-slate-100 leading-none">
+                  Özet Rapor
+                </h1>
+                <p className="text-[10px] font-mono text-slate-500 dark:text-slate-400 mt-0.5">{periodRange}</p>
+              </div>
             </div>
+            <BarChart3 className="h-5 w-5 text-slate-400" />
           </div>
         </div>
       </header>
 
-      <main className="max-w-2xl mx-auto px-4 sm:px-6 py-6 space-y-5">
+      <main className="max-w-2xl mx-auto px-4 sm:px-6 py-5 space-y-5 pb-24">
+
+        {/* Dönem seçici */}
+        <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
+          {PERIOD_OPTIONS.map((opt) => (
+            <button
+              key={opt.value}
+              onClick={() => setPeriod(opt.value)}
+              className={cn(
+                "flex-shrink-0 px-3.5 py-1.5 rounded-full text-xs font-medium border transition-all",
+                period === opt.value
+                  ? "bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 border-slate-900 dark:border-slate-100"
+                  : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-slate-400"
+              )}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
 
         {/* Özet kartları */}
         <div className="grid grid-cols-3 gap-3">
           <StatCard
             icon={<CheckCircle2 className="h-5 w-5 text-emerald-600" />}
             bg="bg-emerald-50 dark:bg-emerald-900/20"
-            value={completedThisWeek.length}
+            value={completedInPeriod.length}
             label="Tamamlandı"
           />
           <StatCard
@@ -102,67 +176,36 @@ export default function SummaryPage() {
           />
         </div>
 
-        {/* Kişi bazlı karşılaştırma */}
+        {/* Emin vs Emre */}
         <div className="surface-card p-5 space-y-4">
           <div className="flex items-center gap-2">
             <Trophy className="h-4 w-4 text-amber-500" />
-            <h2 className="font-display font-semibold text-sm text-slate-800 dark:text-slate-200">Bu Hafta En Aktif</h2>
+            <h2 className="font-display font-semibold text-sm text-slate-800 dark:text-slate-200">
+              {periodLabel} En Aktif
+            </h2>
           </div>
 
-          <div className="flex items-center gap-3">
-            {/* Emin */}
-            <div className={cn(
-              "flex-1 rounded-2xl p-4 text-center border-2 transition-all",
-              winner === "emin"
-                ? "border-indigo-400 bg-indigo-50 dark:bg-indigo-900/20"
-                : "border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/40"
-            )}>
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-400 to-indigo-600 flex items-center justify-center text-white font-bold text-lg mx-auto mb-2">
-                E
-              </div>
-              <p className="font-semibold text-slate-800 dark:text-slate-200 text-sm">Emin</p>
-              <p className="text-2xl font-display font-bold text-indigo-600 mt-1">{eminCount}</p>
-              <p className="text-xs text-slate-500">görev</p>
-              {winner === "emin" && <p className="text-xs text-amber-500 font-medium mt-1">🏆 Bu haftanın lideri</p>}
-            </div>
-
-            <div className="text-slate-300 dark:text-slate-600 font-bold text-lg">VS</div>
-
-            {/* Emre */}
-            <div className={cn(
-              "flex-1 rounded-2xl p-4 text-center border-2 transition-all",
-              winner === "emre"
-                ? "border-amber-400 bg-amber-50 dark:bg-amber-900/20"
-                : "border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/40"
-            )}>
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white font-bold text-lg mx-auto mb-2">
-                E
-              </div>
-              <p className="font-semibold text-slate-800 dark:text-slate-200 text-sm">Emre</p>
-              <p className="text-2xl font-display font-bold text-amber-600 mt-1">{emreCount}</p>
-              <p className="text-xs text-slate-500">görev</p>
-              {winner === "emre" && <p className="text-xs text-amber-500 font-medium mt-1">🏆 Bu haftanın lideri</p>}
-            </div>
+          <div className="flex items-stretch gap-3">
+            <PersonCard name="Emin" color="indigo" count={eminCount} isWinner={winner === "emin"} tasks={eminCompleted} />
+            <div className="flex items-center text-slate-300 dark:text-slate-600 font-bold text-sm">VS</div>
+            <PersonCard name="Emre" color="amber" count={emreCount} isWinner={winner === "emre"} tasks={emreCompleted} />
           </div>
 
-          {/* Bar grafik */}
-          {total > 0 && (
+          {vsTotal > 0 && (
             <div className="space-y-1.5">
-              <div className="flex h-3 rounded-full overflow-hidden">
-                <div
-                  className="bg-gradient-to-r from-indigo-400 to-indigo-600 transition-all duration-700"
-                  style={{ width: `${eminPct}%` }}
-                />
-                <div
-                  className="bg-gradient-to-r from-amber-400 to-amber-600 transition-all duration-700"
-                  style={{ width: `${emrePct}%` }}
-                />
+              <div className="flex h-2.5 rounded-full overflow-hidden">
+                <div className="bg-gradient-to-r from-indigo-400 to-indigo-600 transition-all duration-700" style={{ width: `${eminPct}%` }} />
+                <div className="bg-gradient-to-r from-amber-400 to-amber-600 transition-all duration-700" style={{ width: `${emrePct}%` }} />
               </div>
               <div className="flex justify-between text-[10px] text-slate-400 font-mono">
                 <span>Emin %{eminPct}</span>
                 <span>Emre %{emrePct}</span>
               </div>
             </div>
+          )}
+
+          {vsTotal === 0 && (
+            <p className="text-xs text-slate-400 text-center py-2">Bu dönemde tamamlanan görev yok</p>
           )}
         </div>
 
@@ -171,35 +214,16 @@ export default function SummaryPage() {
           <div className="flex items-center gap-2">
             <CheckCircle2 className="h-4 w-4 text-emerald-500" />
             <h2 className="font-display font-semibold text-sm text-slate-800 dark:text-slate-200">
-              Bu Hafta Tamamlananlar
-              {completedThisWeek.length > 0 && (
-                <span className="ml-2 text-xs font-normal text-slate-400">({completedThisWeek.length})</span>
-              )}
+              Tamamlananlar
+              <span className="ml-1.5 text-xs font-normal text-slate-400">({completedInPeriod.length})</span>
             </h2>
           </div>
-          {completedThisWeek.length === 0 ? (
-            <p className="text-sm text-slate-400 py-3 text-center">Bu hafta tamamlanan görev yok</p>
+          {completedInPeriod.length === 0 ? (
+            <p className="text-sm text-slate-400 py-3 text-center">Bu dönemde tamamlanan görev yok</p>
           ) : (
-            <div className="space-y-1.5">
-              {completedThisWeek.map((t) => (
-                <Link
-                  key={t.id}
-                  href={`/tasks/${t.id}`}
-                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors group"
-                >
-                  <div className={cn(
-                    "w-6 h-6 rounded-full flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0",
-                    t.owner === "emin" ? "bg-gradient-to-br from-indigo-400 to-indigo-600" : t.owner === "emre" ? "bg-gradient-to-br from-amber-400 to-amber-600" : "bg-gradient-to-br from-emerald-400 to-emerald-600"
-                  )}>
-                    {t.owner === "shared" ? "◆" : "E"}
-                  </div>
-                  <span className="flex-1 text-sm text-slate-700 dark:text-slate-300 line-through decoration-slate-300 dark:decoration-slate-600 truncate">
-                    {t.title}
-                  </span>
-                  <span className={cn("text-[10px] px-1.5 py-0.5 rounded-md border flex-shrink-0", PRIORITY_COLORS[t.priority])}>
-                    {PRIORITY_LABELS[t.priority]}
-                  </span>
-                </Link>
+            <div className="space-y-1">
+              {completedInPeriod.map((t) => (
+                <TaskRow key={t.id} task={t} done />
               ))}
             </div>
           )}
@@ -211,59 +235,41 @@ export default function SummaryPage() {
             <AlertTriangle className="h-4 w-4 text-red-500" />
             <h2 className="font-display font-semibold text-sm text-slate-800 dark:text-slate-200">
               Geciken Görevler
-              {overdueTasks.length > 0 && (
-                <span className="ml-2 text-xs font-normal text-slate-400">({overdueTasks.length})</span>
-              )}
+              <span className="ml-1.5 text-xs font-normal text-slate-400">({overdueTasks.length})</span>
             </h2>
           </div>
           {overdueTasks.length === 0 ? (
             <p className="text-sm text-slate-400 py-3 text-center">Geciken görev yok 🎉</p>
           ) : (
-            <div className="space-y-1.5">
+            <div className="space-y-1">
               {overdueTasks.map((t) => (
-                <Link
-                  key={t.id}
-                  href={`/tasks/${t.id}`}
-                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-red-50/50 dark:hover:bg-red-900/10 transition-colors group"
-                >
-                  <div className={cn(
-                    "w-6 h-6 rounded-full flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0",
-                    t.owner === "emin" ? "bg-gradient-to-br from-indigo-400 to-indigo-600" : t.owner === "emre" ? "bg-gradient-to-br from-amber-400 to-amber-600" : "bg-gradient-to-br from-emerald-400 to-emerald-600"
-                  )}>
-                    {t.owner === "shared" ? "◆" : "E"}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm text-slate-700 dark:text-slate-300 truncate">{t.title}</p>
-                    {t.due_date && (
-                      <p className="text-[10px] text-red-500 font-mono">
-                        {format(parseISO(t.due_date), "d MMM yyyy", { locale: tr })}
-                      </p>
-                    )}
-                  </div>
-                  <span className={cn("text-[10px] px-1.5 py-0.5 rounded-md border flex-shrink-0", PRIORITY_COLORS[t.priority])}>
-                    {PRIORITY_LABELS[t.priority]}
-                  </span>
-                </Link>
+                <TaskRow key={t.id} task={t} />
               ))}
             </div>
           )}
         </div>
 
-        {/* Kişi bazlı detay */}
-        <div className="grid grid-cols-2 gap-3">
-          <OwnerStats
-            name="Emin"
-            color="indigo"
-            tasks={tasks.filter((t) => t.owner === "emin")}
-          />
-          <OwnerStats
-            name="Emre"
-            color="amber"
-            tasks={tasks.filter((t) => t.owner === "emre")}
-          />
-        </div>
+        {/* Geçmiş özetler */}
+        {history.length > 0 && (
+          <div className="surface-card p-5 space-y-3">
+            <div className="flex items-center gap-2">
+              <BarChart3 className="h-4 w-4 text-violet-500" />
+              <h2 className="font-display font-semibold text-sm text-slate-800 dark:text-slate-200">Geçmiş Özetler</h2>
+            </div>
+            <div className="space-y-2">
+              {history.map((s) => (
+                <HistoryCard
+                  key={s.id}
+                  summary={s}
+                  expanded={expandedId === s.id}
+                  onToggle={() => setExpandedId(expandedId === s.id ? null : s.id)}
+                />
+              ))}
+            </div>
+          </div>
+        )}
 
-        <div className="pb-6 text-center">
+        <div className="pb-4 text-center">
           <Link href="/" className="text-xs text-indigo-600 hover:text-indigo-800 font-medium">
             ← Ana sayfaya dön
           </Link>
@@ -276,58 +282,108 @@ export default function SummaryPage() {
 function StatCard({ icon, bg, value, label }: { icon: React.ReactNode; bg: string; value: number; label: string }) {
   return (
     <div className="surface-card px-3 py-4 flex flex-col items-center gap-2 text-center">
-      <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center", bg)}>
-        {icon}
-      </div>
+      <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center", bg)}>{icon}</div>
       <p className="font-display font-bold text-2xl text-slate-900 dark:text-slate-100 leading-none tabular-nums">{value}</p>
       <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">{label}</p>
     </div>
   )
 }
 
-function OwnerStats({ name, color, tasks }: { name: string; color: "indigo" | "amber"; tasks: Task[] }) {
-  const done = tasks.filter((t) => t.status === "done").length
-  const total = tasks.length
-  const pct = total > 0 ? Math.round((done / total) * 100) : 0
-  const inProgress = tasks.filter((t) => t.status === "in_progress").length
+function PersonCard({
+  name, color, count, isWinner, tasks,
+}: {
+  name: string; color: "indigo" | "amber"; count: number; isWinner: boolean; tasks: Task[]
+}) {
   const overdue = tasks.filter(isOverdue).length
+  return (
+    <div className={cn(
+      "flex-1 rounded-2xl p-4 text-center border-2 transition-all space-y-1",
+      isWinner
+        ? color === "indigo" ? "border-indigo-400 bg-indigo-50 dark:bg-indigo-900/20" : "border-amber-400 bg-amber-50 dark:bg-amber-900/20"
+        : "border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/40"
+    )}>
+      <div className={cn(
+        "w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-lg mx-auto",
+        color === "indigo" ? "bg-gradient-to-br from-indigo-400 to-indigo-600" : "bg-gradient-to-br from-amber-400 to-amber-600"
+      )}>E</div>
+      <p className="font-semibold text-slate-800 dark:text-slate-200 text-sm">{name}</p>
+      <p className={cn("text-2xl font-display font-bold", color === "indigo" ? "text-indigo-600" : "text-amber-600")}>{count}</p>
+      <p className="text-[10px] text-slate-500">tamamlandı</p>
+      {overdue > 0 && <p className="text-[10px] text-red-500">{overdue} gecikmiş</p>}
+      {isWinner && <p className="text-[10px] text-amber-500 font-medium">🏆 Lider</p>}
+    </div>
+  )
+}
 
-  const barColor = color === "indigo" ? "bg-gradient-to-r from-indigo-400 to-indigo-600" : "bg-gradient-to-r from-amber-400 to-amber-600"
-  const textColor = color === "indigo" ? "text-indigo-600" : "text-amber-600"
+function TaskRow({ task, done }: { task: Task; done?: boolean }) {
+  const ownerClass =
+    task.owner === "emin" ? "bg-gradient-to-br from-indigo-400 to-indigo-600"
+    : task.owner === "emre" ? "bg-gradient-to-br from-amber-400 to-amber-600"
+    : "bg-gradient-to-br from-emerald-400 to-emerald-600"
 
   return (
-    <div className="surface-card p-4 space-y-3">
-      <div className="flex items-center gap-2">
-        <div className={cn("w-7 h-7 rounded-full flex items-center justify-center text-white font-bold text-xs", color === "indigo" ? "bg-gradient-to-br from-indigo-400 to-indigo-600" : "bg-gradient-to-br from-amber-400 to-amber-600")}>
-          E
-        </div>
-        <span className="font-semibold text-sm text-slate-800 dark:text-slate-200">{name}</span>
+    <Link
+      href={`/tasks/${task.id}`}
+      className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors"
+    >
+      <div className={cn("w-6 h-6 rounded-full flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0", ownerClass)}>
+        {task.owner === "shared" ? "◆" : "E"}
       </div>
+      <div className="flex-1 min-w-0">
+        <p className={cn("text-sm truncate", done ? "text-slate-500 dark:text-slate-400 line-through decoration-slate-300" : "text-slate-700 dark:text-slate-300")}>
+          {task.title}
+        </p>
+        {!done && task.due_date && (
+          <p className="text-[10px] text-red-500 font-mono">{format(parseISO(task.due_date), "d MMM", { locale: tr })}</p>
+        )}
+      </div>
+      <span className={cn("text-[10px] px-1.5 py-0.5 rounded-md border flex-shrink-0", PRIORITY_COLORS[task.priority])}>
+        {PRIORITY_LABELS[task.priority]}
+      </span>
+    </Link>
+  )
+}
 
-      <div className="space-y-1">
-        <div className="flex justify-between text-xs text-slate-500">
-          <span>Tamamlama</span>
-          <span className={cn("font-bold", textColor)}>%{pct}</span>
-        </div>
-        <div className="h-2 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
-          <div className={cn("h-full rounded-full transition-all duration-700", barColor)} style={{ width: `${pct}%` }} />
-        </div>
-      </div>
+function HistoryCard({ summary, expanded, onToggle }: { summary: WeeklySummary; expanded: boolean; onToggle: () => void }) {
+  const weekLabel = `${format(parseISO(summary.week_start), "d MMM", { locale: tr })} – ${format(parseISO(summary.week_end), "d MMM yyyy", { locale: tr })}`
+  const winner = summary.emin_completed > summary.emre_completed ? "Emin 🏆" : summary.emre_completed > summary.emin_completed ? "Emre 🏆" : "Eşit 🤝"
 
-      <div className="grid grid-cols-3 gap-1 text-center">
-        <div>
-          <p className="font-bold text-sm text-slate-800 dark:text-slate-200">{total}</p>
-          <p className="text-[10px] text-slate-400">Toplam</p>
+  return (
+    <div className="rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+      <button
+        onClick={onToggle}
+        className="w-full flex items-center justify-between px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
+      >
+        <div className="text-left">
+          <p className="text-xs font-semibold text-slate-800 dark:text-slate-200">{weekLabel}</p>
+          <p className="text-[10px] text-slate-500 mt-0.5">
+            {summary.total_completed} tamamlandı · {summary.total_overdue} gecikmiş · {winner}
+          </p>
         </div>
-        <div>
-          <p className="font-bold text-sm text-emerald-600">{done}</p>
-          <p className="text-[10px] text-slate-400">Bitti</p>
+        {expanded
+          ? <ChevronUp className="h-4 w-4 text-slate-400 flex-shrink-0" />
+          : <ChevronDown className="h-4 w-4 text-slate-400 flex-shrink-0" />
+        }
+      </button>
+
+      {expanded && (
+        <div className="px-4 pb-4 border-t border-slate-100 dark:border-slate-700/60 pt-3 space-y-3">
+          <div className="grid grid-cols-2 gap-2">
+            <div className="rounded-xl bg-indigo-50 dark:bg-indigo-900/20 p-3 text-center">
+              <p className="text-lg font-bold text-indigo-600">{summary.emin_completed}</p>
+              <p className="text-[10px] text-slate-500 mt-0.5">Emin tamamladı</p>
+            </div>
+            <div className="rounded-xl bg-amber-50 dark:bg-amber-900/20 p-3 text-center">
+              <p className="text-lg font-bold text-amber-600">{summary.emre_completed}</p>
+              <p className="text-[10px] text-slate-500 mt-0.5">Emre tamamladı</p>
+            </div>
+          </div>
+          <div className="flex gap-4 text-xs text-slate-600 dark:text-slate-400">
+            <span>✅ Toplam: <strong>{summary.total_completed}</strong></span>
+            <span>⚠️ Geciken: <strong className="text-red-500">{summary.total_overdue}</strong></span>
+          </div>
         </div>
-        <div>
-          <p className={cn("font-bold text-sm", overdue > 0 ? "text-red-500" : "text-slate-400")}>{overdue}</p>
-          <p className="text-[10px] text-slate-400">Gecikti</p>
-        </div>
-      </div>
+      )}
     </div>
   )
 }
