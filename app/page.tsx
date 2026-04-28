@@ -25,6 +25,7 @@ import {
   Sparkles,
   CalendarDays,
   BarChart3,
+  Settings,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -242,6 +243,13 @@ export default function DashboardPage() {
                 >
                   <BarChart3 className="h-3.5 w-3.5" />
                   Özet
+                </Link>
+                <Link
+                  href="/settings"
+                  className="group flex items-center gap-2 pl-2 pr-3 py-1 rounded-full text-xs font-medium bg-white dark:bg-slate-800 hover:bg-slate-100/80 dark:hover:bg-slate-700/50 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 transition-all border border-slate-200/70 dark:border-slate-700 hover:border-slate-300"
+                >
+                  <Settings className="h-3.5 w-3.5" />
+                  Ayarlar
                 </Link>
               </div>
               <div className="w-px h-6 bg-slate-200 dark:bg-slate-700 mx-1 hidden sm:block" />
