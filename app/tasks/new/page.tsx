@@ -6,10 +6,13 @@ import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
 import TaskWizard from "@/components/TaskWizard"
 import type { Owner } from "@/lib/supabase"
+import { useCurrentUser } from "@/lib/auth"
 
 function NewTaskContent() {
   const params = useSearchParams()
-  const owner = (params.get("owner") || "shared") as Owner
+  const { user } = useCurrentUser()
+  // URL'de owner varsa onu kullan, yoksa giriş yapan kullanıcının owner'ı
+  const owner = (params.get("owner") || user?.owner || "shared") as Owner
 
   return (
     <div className="min-h-screen">

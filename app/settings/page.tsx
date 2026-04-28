@@ -2,9 +2,11 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { ChevronLeft, Settings, Check, Save } from "lucide-react"
+import { ChevronLeft, Settings, Check, Save, Shield } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { supabase } from "@/lib/supabase"
+import { useCurrentUser } from "@/lib/auth"
+import Link from "next/link"
 
 type Owner = "emin" | "emre"
 
@@ -31,6 +33,7 @@ export default function SettingsPage() {
     emin: { ...DEFAULT_PREFS },
     emre: { ...DEFAULT_PREFS },
   })
+  const { user: currentUser } = useCurrentUser()
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [mounted, setMounted] = useState(false)
@@ -228,6 +231,23 @@ export default function SettingsPage() {
             : <p className="text-red-500">• Hatırlatıcı seçilmedi</p>
           }
         </div>
+
+        {/* Admin paneli - sadece emin */}
+        {currentUser?.isAdmin && (
+          <Link
+            href="/admin"
+            className="flex items-center justify-between px-5 py-4 rounded-2xl border border-indigo-200 dark:border-indigo-700 bg-indigo-50/50 dark:bg-indigo-900/10 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <Shield className="h-5 w-5 text-indigo-500" />
+              <div>
+                <p className="text-sm font-semibold text-indigo-700 dark:text-indigo-300">Admin Paneli</p>
+                <p className="text-xs text-indigo-500 dark:text-indigo-400">Kullanıcı yönetimi</p>
+              </div>
+            </div>
+            <ChevronLeft className="h-4 w-4 text-indigo-400 rotate-180" />
+          </Link>
+        )}
 
         {/* Kaydet */}
         <button

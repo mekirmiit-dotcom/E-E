@@ -26,9 +26,11 @@ import { createNotification } from "@/lib/notifications"
 import { getComments, addComment, deleteComment } from "@/lib/comments"
 import { supabase } from "@/lib/supabase"
 import FileAttachments from "@/components/FileAttachments"
+import { useCurrentUser } from "@/lib/auth"
 
 export default function TaskDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter()
+  const { user: currentUser } = useCurrentUser()
   const [task, setTask] = useState<Task | null>(null)
   const [editing, setEditing] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -47,9 +49,14 @@ export default function TaskDetailPage({ params }: { params: { id: string } }) {
   const [checklist, setChecklist] = useState<ChecklistItem[]>([])
   const [color, setColor] = useState<string | null>(null)
 
-  // Comments state
+  // Comments state — default author from logged-in user
   const [comments, setComments] = useState<Comment[]>([])
   const [commentAuthor, setCommentAuthor] = useState<"emin" | "emre">("emin")
+
+  // Giriş yapan kullanıcıya göre yorum yazarını ayarla
+  useEffect(() => {
+    if (currentUser?.owner) setCommentAuthor(currentUser.owner)
+  }, [currentUser])
   const [commentText, setCommentText] = useState("")
   const [sendingComment, setSendingComment] = useState(false)
 
