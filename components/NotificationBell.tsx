@@ -15,6 +15,7 @@ const typeConfig = {
   overdue:   { icon: "🚨", color: "text-red-600 bg-red-50 dark:bg-red-900/20" },
   completed: { icon: "✅", color: "text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20" },
   assigned:  { icon: "👤", color: "text-indigo-600 bg-indigo-50 dark:bg-indigo-900/20" },
+  summary:   { icon: "📊", color: "text-violet-600 bg-violet-50 dark:bg-violet-900/20" },
 }
 
 export default function NotificationBell() {

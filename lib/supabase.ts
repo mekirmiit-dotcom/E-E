@@ -59,9 +59,9 @@ export type Comment = {
 
 export type Notification = {
   id: string
-  task_id: string
+  task_id: string | null
   message: string
   read: boolean
   created_at: string
-  type: "reminder" | "overdue" | "completed" | "assigned"
+  type: "reminder" | "overdue" | "completed" | "assigned" | "summary"
 }

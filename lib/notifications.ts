@@ -39,7 +39,7 @@ export async function createNotification(
 
   // Send push to all subscribed devices
   try {
-    const typeEmoji: Record<string, string> = { reminder: "⏰", overdue: "🚨", completed: "✅", assigned: "👤" }
+    const typeEmoji: Record<string, string> = { reminder: "⏰", overdue: "🚨", completed: "✅", assigned: "👤", summary: "📊" }
     const title = pushTitle ?? `${typeEmoji[type] ?? "🔔"} İş Takibi`
     await fetch("/api/push", {
       method: "POST",
