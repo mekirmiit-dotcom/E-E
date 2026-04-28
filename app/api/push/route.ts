@@ -2,13 +2,12 @@ import { NextRequest, NextResponse } from "next/server"
 import webpush from "web-push"
 import { supabase } from "@/lib/supabase"
 
-webpush.setVapidDetails(
-  `mailto:${process.env.VAPID_SUBJECT}`,
-  process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
-  process.env.VAPID_PRIVATE_KEY!
-)
-
 export async function POST(req: NextRequest) {
+  webpush.setVapidDetails(
+    `mailto:${process.env.VAPID_SUBJECT}`,
+    process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
+    process.env.VAPID_PRIVATE_KEY!
+  )
   const { title, body, task_id } = await req.json()
 
   const { data: subs } = await supabase.from("push_subscriptions").select("*")

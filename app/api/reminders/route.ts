@@ -2,12 +2,6 @@ import { NextResponse } from "next/server"
 import { supabase } from "@/lib/supabase"
 import webpush from "web-push"
 
-webpush.setVapidDetails(
-  `mailto:${process.env.VAPID_SUBJECT}`,
-  process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
-  process.env.VAPID_PRIVATE_KEY!
-)
-
 function addDays(date: Date, days: number): Date {
   const d = new Date(date)
   d.setDate(d.getDate() + days)
@@ -19,6 +13,11 @@ function toDateStr(date: Date): string {
 }
 
 async function sendPush(title: string, body: string) {
+  webpush.setVapidDetails(
+    `mailto:${process.env.VAPID_SUBJECT}`,
+    process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
+    process.env.VAPID_PRIVATE_KEY!
+  )
   const { data: subs } = await supabase.from("push_subscriptions").select("*")
   if (!subs?.length) return
 
