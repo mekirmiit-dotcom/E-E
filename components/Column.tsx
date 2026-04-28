@@ -2,6 +2,7 @@
 
 import { useDroppable } from "@dnd-kit/core"
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable"
+import { motion, AnimatePresence } from "framer-motion"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Plus, ExternalLink, MoreHorizontal } from "lucide-react"
@@ -48,10 +49,16 @@ export default function Column({
     shared: "bg-emerald-400",
   }[owner]
 
-  const ringColor = {
-    emin: "ring-indigo-400/70",
-    emre: "ring-amber-400/70",
-    shared: "ring-emerald-400/70",
+  const borderGlow = {
+    emin: "border-indigo-400/50",
+    emre: "border-amber-400/50",
+    shared: "border-emerald-400/50",
+  }[owner]
+
+  const shimmerColor = {
+    emin: "bg-indigo-400/20",
+    emre: "bg-amber-400/20",
+    shared: "bg-emerald-400/20",
   }[owner]
 
   const glowColor = {
@@ -66,41 +73,43 @@ export default function Column({
     shared: "0 0 0 2px rgba(16,185,129,0.5), 0 0 32px 4px rgba(16,185,129,0.12)",
   }[owner]
 
-  const shimmerColor = {
-    emin: "bg-indigo-400/20",
-    emre: "bg-amber-400/20",
-    shared: "bg-emerald-400/20",
-  }[owner]
-
-  const borderGlow = {
-    emin: "border-indigo-400/50",
-    emre: "border-amber-400/50",
-    shared: "border-emerald-400/50",
-  }[owner]
-
   return (
-    <div
+    <motion.div
       ref={setNodeRef}
-      style={isOver ? { boxShadow: columnGlowShadow } : undefined}
       className={cn(
-        "kanban-column relative transition-all duration-200",
+        "kanban-column relative",
         `column-${owner}`,
-        isOver && `border ${borderGlow} scale-[1.01]`
+        isOver && `border ${borderGlow}`,
       )}
+      animate={
+        isOver
+          ? { boxShadow: columnGlowShadow, scale: 1.012 }
+          : { boxShadow: "0px 0px 0px rgba(0,0,0,0)", scale: 1 }
+      }
+      transition={{ duration: 0.18, ease: "easeOut" }}
     >
       {/* Glow overlay when dragging over */}
-      {isOver && (
-        <div className={cn(
-          "absolute inset-0 rounded-2xl bg-gradient-to-b pointer-events-none z-0",
-          glowColor
-        )}>
-          {/* Shimmer sweep */}
-          <div
-            className={cn("absolute inset-y-0 w-1/2 skew-x-[-20deg] opacity-60", shimmerColor)}
-            style={{ animation: "column-shimmer 1.2s ease-in-out infinite" }}
-          />
-        </div>
-      )}
+      <AnimatePresence>
+        {isOver && (
+          <motion.div
+            key="glow"
+            className={cn(
+              "absolute inset-0 rounded-2xl bg-gradient-to-b pointer-events-none z-0",
+              glowColor
+            )}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+          >
+            <div
+              className={cn("absolute inset-y-0 w-1/2 skew-x-[-20deg] opacity-60", shimmerColor)}
+              style={{ animation: "column-shimmer 1.2s ease-in-out infinite" }}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Column Header */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2.5 min-w-0">
@@ -195,7 +204,7 @@ export default function Column({
       <SortableContext items={tasks.map((t) => t.id)} strategy={verticalListSortingStrategy}>
         <div className="flex flex-col gap-2.5 flex-1 relative z-10">
           {tasks.length === 0 ? (
-            <div
+            <motion.div
               className={cn(
                 "flex flex-col items-center justify-center py-12 rounded-xl border border-dashed text-center transition-all duration-300",
                 isOver
@@ -205,6 +214,8 @@ export default function Column({
                 owner === "emre" && isOver && "border-amber-400 text-amber-500",
                 owner === "shared" && isOver && "border-emerald-400 text-emerald-500"
               )}
+              animate={isOver ? { scale: 1.02 } : { scale: 1 }}
+              transition={{ duration: 0.15 }}
             >
               <div
                 className={cn(
@@ -233,14 +244,25 @@ export default function Column({
               >
                 Görev ekle →
               </button>
-            </div>
+            </motion.div>
           ) : (
-            tasks.map((task) => (
-              <TaskCard key={task.id} task={task} settled={task.id === settledId} />
-            ))
+            <AnimatePresence initial={false} mode="popLayout">
+              {tasks.map((task) => (
+                <motion.div
+                  key={task.id}
+                  initial={{ opacity: 0, y: -10, scale: 0.97 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.15, ease: "easeIn" } }}
+                  transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                  layout="position"
+                >
+                  <TaskCard key={task.id} task={task} settled={task.id === settledId} />
+                </motion.div>
+              ))}
+            </AnimatePresence>
           )}
         </div>
       </SortableContext>
-    </div>
+    </motion.div>
   )
 }
