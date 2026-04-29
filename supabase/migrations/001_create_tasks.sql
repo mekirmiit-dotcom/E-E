@@ -22,8 +22,9 @@ create table if not exists public.notifications (
   id uuid primary key default gen_random_uuid(),
   task_id uuid references public.tasks(id) on delete cascade,
   message text not null,
-  type text not null check (type in ('reminder', 'overdue', 'completed', 'assigned')),
+  type text not null check (type in ('reminder', 'overdue', 'completed', 'assigned', 'summary')),
   read boolean default false,
+  recipient text not null default 'both' check (recipient in ('emin', 'emre', 'both')),
   created_at timestamptz default now()
 );
 
@@ -54,3 +55,4 @@ create index tasks_status_idx on public.tasks(status);
 create index tasks_due_date_idx on public.tasks(due_date);
 create index notifications_task_id_idx on public.notifications(task_id);
 create index notifications_read_idx on public.notifications(read);
+create index notifications_recipient_idx on public.notifications(recipient);
