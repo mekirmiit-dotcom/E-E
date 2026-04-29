@@ -142,6 +142,7 @@ export default function TaskDetailPage({ params }: { params: { id: string } }) {
     // İşlemi yapan kişinin karşısındakine bildirim git
     const actor = currentUser?.owner
     const recipient = actor === "emin" ? "emre" : actor === "emre" ? "emin" : "both"
+    console.log("[handleSave] actor:", actor, "→ recipient:", recipient)
 
     const statusLabels: Record<string, string> = {
       todo: "Yapılacak", in_progress: "Devam Ediyor", review: "İncelemede", done: "Tamamlandı",

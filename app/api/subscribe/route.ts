@@ -3,12 +3,13 @@ import { supabase } from "@/lib/supabase"
 
 export async function POST(req: NextRequest) {
   const sub = await req.json()
-  const { endpoint, keys } = sub
+  const { endpoint, keys, owner } = sub
 
   await supabase.from("push_subscriptions").upsert({
     endpoint,
     p256dh: keys.p256dh,
     auth: keys.auth,
+    ...(owner ? { owner } : {}),
   }, { onConflict: "endpoint" })
 
   return NextResponse.json({ ok: true })

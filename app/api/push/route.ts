@@ -8,9 +8,14 @@ export async function POST(req: NextRequest) {
     process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
     process.env.VAPID_PRIVATE_KEY!
   )
-  const { title, body, task_id } = await req.json()
+  const { title, body, task_id, recipient } = await req.json()
 
-  const { data: subs } = await supabase.from("push_subscriptions").select("*")
+  // recipient: "emin" | "emre" | "both" — sadece ilgili cihazlara gönder
+  let query = supabase.from("push_subscriptions").select("*")
+  if (recipient && recipient !== "both") {
+    query = query.or(`owner.eq.${recipient},owner.is.null`)
+  }
+  const { data: subs } = await query
   if (!subs?.length) return NextResponse.json({ ok: true, sent: 0 })
 
   const payload = JSON.stringify({

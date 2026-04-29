@@ -153,7 +153,7 @@ export default function NotificationBell() {
               {!pushEnabled && (
                 <button
                   onClick={async () => {
-                    const ok = await registerPush()
+                    const ok = await registerPush(currentUser?.owner)
                     if (ok) setPushEnabled(true)
                   }}
                   className="flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400 hover:text-indigo-600 font-medium transition-colors"

@@ -41,6 +41,8 @@ export async function createNotification(
   recipient: Recipient = "both",
   pushTitle?: string
 ): Promise<void> {
+  console.log("[createNotification] →", { type, recipient, taskId, message })
+
   const { error } = await supabase.from("notifications").insert({
     task_id: taskId,
     message,
@@ -49,9 +51,10 @@ export async function createNotification(
     recipient,
   })
   if (error) {
-    console.error("[createNotification] error:", error.message, error.details)
+    console.error("[createNotification] ❌ INSERT hatası:", error.message, error.details, error.hint)
     return
   }
+  console.log("[createNotification] ✅ kayıt OK — recipient:", recipient)
 
   // Push bildirimi sadece alıcı cihazlara gönder
   try {
@@ -70,7 +73,7 @@ export async function createNotification(
 }
 
 // Register service worker and subscribe to push
-export async function registerPush(): Promise<boolean> {
+export async function registerPush(owner?: "emin" | "emre"): Promise<boolean> {
   if (typeof window === "undefined") return false
   if (!("serviceWorker" in navigator) || !("PushManager" in window)) return false
 
@@ -90,7 +93,7 @@ export async function registerPush(): Promise<boolean> {
   await fetch("/api/subscribe", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(sub.toJSON()),
+    body: JSON.stringify({ ...sub.toJSON(), owner }),
   })
 
   return true
