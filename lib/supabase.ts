@@ -65,4 +65,5 @@ export type Notification = {
   read: boolean
   created_at: string
   type: "reminder" | "overdue" | "completed" | "assigned" | "summary"
+  recipient: "emin" | "emre" | "both"
 }

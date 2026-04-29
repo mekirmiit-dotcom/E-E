@@ -10,6 +10,7 @@ import { formatDistanceToNow } from "date-fns"
 import { tr } from "date-fns/locale"
 import { supabase, type Notification } from "@/lib/supabase"
 import { markNotificationRead, markAllNotificationsRead, registerPush } from "@/lib/notifications"
+import { useCurrentUser } from "@/lib/auth"
 
 const typeConfig = {
   reminder:  { icon: "⏰", color: "text-amber-600 bg-amber-50 dark:bg-amber-900/20" },
@@ -21,6 +22,7 @@ const typeConfig = {
 
 export default function NotificationBell() {
   const router = useRouter()
+  const { user: currentUser } = useCurrentUser()
   const [open, setOpen] = useState(false)
   const [notifs, setNotifs] = useState<Notification[]>([])
   const [pushEnabled, setPushEnabled] = useState(false)
@@ -33,29 +35,41 @@ export default function NotificationBell() {
 
   const unread = notifs.filter((n) => !n.read).length
 
-  // İlk yüklemede bildirimleri çek
+  // currentUser hazır olunca bildirimleri çek
   useEffect(() => {
     async function fetchNotifs() {
-      const { data, error } = await supabase
+      const owner = currentUser?.owner
+      let query = supabase
         .from("notifications")
         .select("*")
         .order("created_at", { ascending: false })
-        .limit(20)
+        .limit(30)
 
+      if (owner) {
+        // Sadece kendi bildirimleri ve "both" olarak gönderilenleri göster
+        query = query.or(`recipient.eq.both,recipient.eq.${owner}`)
+      }
+
+      const { data, error } = await query
       if (error) console.error("[NotificationBell] fetch error:", error)
       else if (data) setNotifs(data)
     }
 
     fetchNotifs()
 
-    // Realtime: yeni bildirim eklenince veya güncellenince listeyi yenile
+    // Realtime: yeni bildirim eklenince filtrele
     const channel = supabase
       .channel("notifications-realtime")
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "notifications" },
         (payload) => {
-          setNotifs((prev) => [payload.new as Notification, ...prev])
+          const notif = payload.new as Notification
+          const owner = currentUser?.owner
+          // Sadece kendi bildirimleri ve "both" bildirimleri ekle
+          if (!owner || notif.recipient === "both" || notif.recipient === owner) {
+            setNotifs((prev) => [notif, ...prev])
+          }
         }
       )
       .on(
@@ -79,7 +93,8 @@ export default function NotificationBell() {
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentUser?.owner])
 
   async function handleMarkRead(id: string) {
     setNotifs((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)))
@@ -88,7 +103,7 @@ export default function NotificationBell() {
 
   async function handleMarkAllRead() {
     setNotifs((prev) => prev.map((n) => ({ ...n, read: true })))
-    await markAllNotificationsRead()
+    await markAllNotificationsRead(currentUser?.owner)
   }
 
   function dismiss(id: string) {

@@ -34,13 +34,13 @@ export async function addComment(
     return null
   }
 
-  // Yorumu yazan kişinin adını büyük harfle yaz
   const authorLabel = author === "emin" ? "Emin" : "Emre"
-  // İçeriği kırp (çok uzunsa)
   const preview = content.length > 50 ? content.slice(0, 50) + "…" : content
   const msg = `${authorLabel}, "${taskTitle}" görevine yorum yazdı: "${preview}"`
+  // Yorum yazan kişinin karşısındakine bildirim git
+  const recipient = author === "emin" ? "emre" : "emin"
 
-  await createNotification(taskId, msg, "assigned", "💬 Yeni Yorum")
+  await createNotification(taskId, msg, "assigned", recipient, "💬 Yeni Yorum")
 
   return data
 }

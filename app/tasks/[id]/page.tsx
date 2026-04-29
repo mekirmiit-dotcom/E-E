@@ -139,6 +139,10 @@ export default function TaskDetailPage({ params }: { params: { id: string } }) {
     setSaving(false)
     if (!updated) return
 
+    // İşlemi yapan kişinin karşısındakine bildirim git
+    const actor = currentUser?.owner
+    const recipient = actor === "emin" ? "emre" : actor === "emre" ? "emin" : "both"
+
     const statusLabels: Record<string, string> = {
       todo: "Yapılacak", in_progress: "Devam Ediyor", review: "İncelemede", done: "Tamamlandı",
     }
@@ -146,12 +150,13 @@ export default function TaskDetailPage({ params }: { params: { id: string } }) {
     // Durum değişikliği
     if (status !== task.status) {
       if (status === "done") {
-        await createNotification(task.id, `✅ "${title}" tamamlandı — tebrikler!`, "completed")
+        await createNotification(task.id, `✅ "${title}" tamamlandı — tebrikler!`, "completed", recipient)
       } else {
         await createNotification(
           task.id,
           `"${title}" durumu "${statusLabels[task.status]}" → "${statusLabels[status]}" olarak değişti`,
-          "assigned"
+          "assigned",
+          recipient
         )
       }
     }
@@ -165,7 +170,8 @@ export default function TaskDetailPage({ params }: { params: { id: string } }) {
         owner === "shared"
           ? `"${title}" ortak göreve dönüştürüldü (${from} → Ortak)`
           : `"${title}" görevi ${to}'e atandı`,
-        "assigned"
+        "assigned",
+        recipient
       )
     }
 
@@ -175,7 +181,8 @@ export default function TaskDetailPage({ params }: { params: { id: string } }) {
       await createNotification(
         task.id,
         `"${title}" önceliği ${pLabel[task.priority]} → ${pLabel[priority]} olarak güncellendi`,
-        "reminder"
+        "reminder",
+        recipient
       )
     }
 
@@ -184,7 +191,7 @@ export default function TaskDetailPage({ params }: { params: { id: string } }) {
       const msg = dueDate
         ? `"${title}" son tarihi ${format(new Date(dueDate), "d MMMM yyyy", { locale: tr })} olarak ayarlandı ⏰`
         : `"${title}" görevinin son tarihi kaldırıldı`
-      await createNotification(task.id, msg, "reminder")
+      await createNotification(task.id, msg, "reminder", recipient)
     }
 
     // Başlık değişikliği
@@ -192,7 +199,8 @@ export default function TaskDetailPage({ params }: { params: { id: string } }) {
       await createNotification(
         task.id,
         `Görev adı güncellendi: "${task.title}" → "${title}"`,
-        "assigned"
+        "assigned",
+        recipient
       )
     }
 
@@ -218,10 +226,13 @@ export default function TaskDetailPage({ params }: { params: { id: string } }) {
         if (item && !item.done) {
           const doneCount = updated.filter((c) => c.done).length
           const total = updated.length
+          const actor = currentUser?.owner
+          const recipient = actor === "emin" ? "emre" : actor === "emre" ? "emin" : "both"
           await createNotification(
             params.id,
             `"${task?.title}" — ${item.text} tamamlandı (${doneCount}/${total})`,
-            "completed"
+            "completed",
+            recipient
           )
         }
       }

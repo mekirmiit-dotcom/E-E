@@ -2,12 +2,22 @@
 
 import { supabase, type Notification } from "./supabase"
 
-export async function getNotifications(): Promise<Notification[]> {
-  const { data, error } = await supabase
+export type Recipient = "emin" | "emre" | "both"
+
+// recipient: bildirimi görecek kişi — currentUser'a göre filtreler
+export async function getNotifications(currentUser?: "emin" | "emre"): Promise<Notification[]> {
+  let query = supabase
     .from("notifications")
     .select("*")
     .order("created_at", { ascending: false })
-    .limit(20)
+    .limit(30)
+
+  if (currentUser) {
+    // Sadece "both" veya kendi adına gelen bildirimleri göster
+    query = query.or(`recipient.eq.both,recipient.eq.${currentUser}`)
+  }
+
+  const { data, error } = await query
   if (error) { console.error("Error fetching notifications:", error); return [] }
   return data || []
 }
@@ -16,14 +26,19 @@ export async function markNotificationRead(id: string): Promise<void> {
   await supabase.from("notifications").update({ read: true }).eq("id", id)
 }
 
-export async function markAllNotificationsRead(): Promise<void> {
-  await supabase.from("notifications").update({ read: true }).eq("read", false)
+export async function markAllNotificationsRead(currentUser?: "emin" | "emre"): Promise<void> {
+  let query = supabase.from("notifications").update({ read: true }).eq("read", false)
+  if (currentUser) {
+    query = query.or(`recipient.eq.both,recipient.eq.${currentUser}`)
+  }
+  await query
 }
 
 export async function createNotification(
-  taskId: string,
+  taskId: string | null,
   message: string,
   type: Notification["type"],
+  recipient: Recipient = "both",
   pushTitle?: string
 ): Promise<void> {
   const { error } = await supabase.from("notifications").insert({
@@ -31,20 +46,23 @@ export async function createNotification(
     message,
     type,
     read: false,
+    recipient,
   })
   if (error) {
     console.error("[createNotification] error:", error.message, error.details)
     return
   }
 
-  // Send push to all subscribed devices
+  // Push bildirimi sadece alıcı cihazlara gönder
   try {
-    const typeEmoji: Record<string, string> = { reminder: "⏰", overdue: "🚨", completed: "✅", assigned: "👤", summary: "📊" }
+    const typeEmoji: Record<string, string> = {
+      reminder: "⏰", overdue: "🚨", completed: "✅", assigned: "👤", summary: "📊",
+    }
     const title = pushTitle ?? `${typeEmoji[type] ?? "🔔"} İş Takibi`
     await fetch("/api/push", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title, body: message, task_id: taskId }),
+      body: JSON.stringify({ title, body: message, task_id: taskId, recipient }),
     })
   } catch (e) {
     console.error("[push] error:", e)
