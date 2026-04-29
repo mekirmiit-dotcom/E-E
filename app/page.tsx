@@ -1,17 +1,17 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { useRouter } from "next/navigation"
 import {
   DndContext,
   DragOverlay,
   MouseSensor,
   TouchSensor,
-  AutoScrollActivator,
   useSensor,
   useSensors,
   type DragStartEvent,
   type DragEndEvent,
+  type DragMoveEvent,
 } from "@dnd-kit/core"
 import { arrayMove } from "@dnd-kit/sortable"
 import Link from "next/link"
@@ -50,6 +50,7 @@ export default function DashboardPage() {
   const [filterStatus, setFilterStatus] = useState<FilterStatus>("all")
   const [mounted, setMounted] = useState(false)
   const [settledId, setSettledId] = useState<string | null>(null)
+  const scrollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   useEffect(() => {
     loadTasks().then((data) => {
@@ -96,12 +97,46 @@ export default function DashboardPage() {
     [tasks, search, filterStatus]
   )
 
+  function clearAutoScroll() {
+    if (scrollIntervalRef.current) {
+      clearInterval(scrollIntervalRef.current)
+      scrollIntervalRef.current = null
+    }
+  }
+
+  function handleDragMove(event: DragMoveEvent) {
+    clearAutoScroll()
+
+    const activatorEvent = event.activatorEvent as TouchEvent | PointerEvent
+    const clientY = "touches" in activatorEvent
+      ? (activatorEvent as TouchEvent).touches[0]?.clientY ?? 0
+      : (activatorEvent as PointerEvent).clientY
+
+    const vh = window.innerHeight
+    const EDGE = vh * 0.18
+    const MAX_SPEED = 14
+
+    let speed = 0
+    if (clientY < EDGE) {
+      speed = -Math.round(MAX_SPEED * (1 - clientY / EDGE))
+    } else if (clientY > vh - EDGE) {
+      speed = Math.round(MAX_SPEED * ((clientY - (vh - EDGE)) / EDGE))
+    }
+
+    if (speed !== 0) {
+      scrollIntervalRef.current = setInterval(() => {
+        window.scrollBy({ top: speed, behavior: "instant" as ScrollBehavior })
+      }, 16)
+    }
+  }
+
   function handleDragStart(event: DragStartEvent) {
     const task = tasks.find((t) => t.id === event.active.id)
     setActiveTask(task || null)
   }
 
   function handleDragEnd(event: DragEndEvent) {
+    clearAutoScroll()
     const { active, over } = event
     setActiveTask(null)
     if (!over) return
@@ -394,13 +429,10 @@ export default function DashboardPage() {
         <DndContext
           sensors={sensors}
           onDragStart={handleDragStart}
+          onDragMove={handleDragMove}
           onDragEnd={handleDragEnd}
-          autoScroll={{
-            activator: AutoScrollActivator.Pointer,
-            threshold: { x: 0.1, y: 0.15 },
-            acceleration: 8,
-            interval: 5,
-          }}
+          onDragCancel={clearAutoScroll}
+          autoScroll={false}
         >
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 stagger">
             {columns.map((col) => {
