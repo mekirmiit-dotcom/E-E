@@ -7,6 +7,7 @@ import {
   DragOverlay,
   MouseSensor,
   TouchSensor,
+  AutoScrollActivator,
   useSensor,
   useSensors,
   type DragStartEvent,
@@ -71,7 +72,7 @@ export default function DashboardPage() {
 
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 5 } }),
-    useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 5 } })
+    useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 5 } })
   )
 
   const getOwnerTasks = useCallback(
@@ -95,24 +96,12 @@ export default function DashboardPage() {
     [tasks, search, filterStatus]
   )
 
-  function lockScroll() {
-    document.body.style.overflow = "hidden"
-    document.body.style.touchAction = "none"
-  }
-
-  function unlockScroll() {
-    document.body.style.overflow = ""
-    document.body.style.touchAction = ""
-  }
-
   function handleDragStart(event: DragStartEvent) {
     const task = tasks.find((t) => t.id === event.active.id)
     setActiveTask(task || null)
-    lockScroll()
   }
 
   function handleDragEnd(event: DragEndEvent) {
-    unlockScroll()
     const { active, over } = event
     setActiveTask(null)
     if (!over) return
@@ -406,10 +395,10 @@ export default function DashboardPage() {
           sensors={sensors}
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
-          onDragCancel={unlockScroll}
           autoScroll={{
-            threshold: { x: 0, y: 0.2 },
-            acceleration: 12,
+            activator: AutoScrollActivator.Pointer,
+            threshold: { x: 0.1, y: 0.15 },
+            acceleration: 8,
             interval: 5,
           }}
         >

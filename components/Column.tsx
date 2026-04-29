@@ -230,7 +230,7 @@ export default function Column({
 
       {/* Tasks */}
       <SortableContext items={tasks.map((t) => t.id)} strategy={verticalListSortingStrategy}>
-        <div className="flex flex-col gap-2.5 flex-1 relative z-10">
+        <div className="flex flex-col gap-2.5 flex-1 relative z-10 md:max-h-[calc(100vh-280px)] md:overflow-y-auto md:pr-0.5">
           {tasks.length === 0 ? (
             <motion.div
               className={cn(

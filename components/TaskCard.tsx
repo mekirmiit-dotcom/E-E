@@ -101,16 +101,11 @@ export default function TaskCard({ task, overlay = false, settled = false }: Tas
     : { type: "spring" as const, stiffness: 300, damping: 25 }
 
   return (
-    // Outer div: dnd-kit controls position (transform/transition)
+    // Outer div: dnd-kit position — touch-action: auto (sayfa scroll'u engelleme)
     <div
       ref={setNodeRef}
-      style={{
-        ...style,
-        // touch-action: none yalnızca drag aktifken — normal zamanda sayfa scroll'u çalışsın
-        touchAction: isDragging || overlay ? "none" : "auto",
-      }}
+      style={style}
       {...attributes}
-      {...listeners}
       className="select-none"
     >
       {/* Inner motion.div: framer-motion controls visual state */}
@@ -140,8 +135,13 @@ export default function TaskCard({ task, overlay = false, settled = false }: Tas
 
         {/* Title row */}
         <div className="flex items-start gap-2 mb-2">
-          <div className="mt-0.5 text-slate-300 dark:text-slate-600 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-            <GripVertical className="h-3.5 w-3.5" />
+          {/* Drag handle — touch-action:manipulation sayfa scrollu korur, listeners sadece burada */}
+          <div
+            {...listeners}
+            style={{ touchAction: "manipulation" }}
+            className="mt-0.5 cursor-grab active:cursor-grabbing text-slate-300 dark:text-slate-600 flex-shrink-0 opacity-60 group-hover:opacity-100 transition-opacity p-1 -m-1 rounded"
+          >
+            <GripVertical className="h-4 w-4" />
           </div>
 
           <div className="flex-1 min-w-0 -ml-6 group-hover:ml-0 transition-all duration-200">
