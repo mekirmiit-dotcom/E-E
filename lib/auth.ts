@@ -6,16 +6,18 @@ import { supabase } from "./supabase"
 export type AppUser = {
   id: string
   email: string
-  owner: "emin" | "emre"
+  owner: "emin" | "emre" | "tuna"
   isAdmin: boolean
 }
 
 function emailToAppUser(id: string, email: string): AppUser {
-  const isEmin = email.toLowerCase().startsWith("emin")
+  const lower = email.toLowerCase()
+  const isEmin = lower.startsWith("emin")
+  const isTuna = lower.startsWith("tuna")
   return {
     id,
     email,
-    owner: isEmin ? "emin" : "emre",
+    owner: isEmin ? "emin" : isTuna ? "tuna" : "emre",
     isAdmin: isEmin,
   }
 }

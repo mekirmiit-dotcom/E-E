@@ -60,7 +60,7 @@ export const STATUS_LABELS: Record<string, string> = {
 }
 
 export const OWNER_LABELS: Record<Owner, string> = {
-  emin: "Emin", emre: "Emre", shared: "Ortak",
+  emin: "Emin", emre: "Emre", tuna: "Tuna", shared: "Ortak",
 }
 
 export const TASK_COLORS = [

@@ -23,7 +23,7 @@ export type Database = {
   }
 }
 
-export type Owner = "emin" | "emre" | "shared"
+export type Owner = "emin" | "emre" | "shared" | "tuna"
 export type Priority = "low" | "medium" | "high" | "critical"
 export type Status = "todo" | "in_progress" | "review" | "done"
 
@@ -53,7 +53,7 @@ export type ChecklistItem = {
 export type Comment = {
   id: string
   task_id: string
-  author: "emin" | "emre"
+  author: "emin" | "emre" | "tuna"
   content: string
   created_at: string
 }
@@ -65,5 +65,5 @@ export type Notification = {
   read: boolean
   created_at: string
   type: "reminder" | "overdue" | "completed" | "assigned" | "summary"
-  recipient: "emin" | "emre" | "both"
+  recipient: "emin" | "emre" | "tuna" | "both"
 }

@@ -147,7 +147,7 @@ export default function DashboardPage() {
 
     const overId = over.id as string
     const overTask = tasks.find((t) => t.id === overId)
-    const overOwner = (["emin", "emre", "shared"].includes(overId) ? overId : overTask?.owner) as Owner | undefined
+    const overOwner = (["emin", "emre", "tuna", "shared"].includes(overId) ? overId : overTask?.owner) as Owner | undefined
 
     if (!overOwner) return
 
@@ -212,6 +212,13 @@ export default function DashboardPage() {
       accentColor: "hover:bg-amber-50 text-amber-600",
     },
     {
+      owner: "tuna",
+      label: "Tuna",
+      emoji: "T",
+      color: "bg-cyan-50 text-cyan-700 border-cyan-100",
+      accentColor: "hover:bg-cyan-50 text-cyan-600",
+    },
+    {
       owner: "shared",
       label: "Ortak",
       emoji: "◆",
@@ -246,7 +253,7 @@ export default function DashboardPage() {
                 <h1 className="font-display font-bold text-[15px] tracking-tight text-slate-900 dark:text-slate-100 leading-none">
                   İş Takibi
                 </h1>
-                <p className="text-[10px] font-mono text-slate-500 dark:text-slate-400 mt-0.5 tracking-wider uppercase">Emin × Emre</p>
+                <p className="text-[10px] font-mono text-slate-500 dark:text-slate-400 mt-0.5 tracking-wider uppercase">Emin × Emre × Tuna</p>
               </div>
             </div>
 
@@ -280,6 +287,13 @@ export default function DashboardPage() {
                 >
                   <span className="w-6 h-6 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center font-bold text-white text-[10px] shadow-sm">E</span>
                   Emre
+                </Link>
+                <Link
+                  href="/tuna"
+                  className="group flex items-center gap-2 pl-1 pr-3 py-1 rounded-full text-xs font-medium bg-white dark:bg-slate-800 hover:bg-cyan-50/80 dark:hover:bg-cyan-900/30 text-slate-700 dark:text-slate-300 hover:text-cyan-700 dark:hover:text-cyan-300 transition-all border border-slate-200/70 dark:border-slate-700 hover:border-cyan-200 dark:hover:border-cyan-700"
+                >
+                  <span className="w-6 h-6 rounded-full bg-gradient-to-br from-cyan-400 to-cyan-600 flex items-center justify-center font-bold text-white text-[10px] shadow-sm">T</span>
+                  Tuna
                 </Link>
                 <Link
                   href="/calendar"
@@ -434,7 +448,7 @@ export default function DashboardPage() {
           onDragCancel={clearAutoScroll}
           autoScroll={false}
         >
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 stagger">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 stagger">
             {columns.map((col) => {
               const colTasks = getOwnerTasks(col.owner)
               const allColTasks = tasks.filter((t) => t.owner === col.owner)
@@ -476,7 +490,7 @@ export default function DashboardPage() {
             </div>
             <h3 className="font-display font-bold text-2xl tracking-tight text-slate-900 mb-2">Henüz görev yok</h3>
             <p className="text-slate-500 mb-7 max-w-sm mx-auto">
-              İlk görevini ekleyerek başla. Emin, Emre veya Ortak sütununa ekleyebilirsin.
+              İlk görevini ekleyerek başla. Emin, Emre, Tuna veya Ortak sütununa ekleyebilirsin.
             </p>
             <Button
               onClick={() => router.push("/tasks/new")}
