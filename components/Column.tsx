@@ -169,7 +169,7 @@ export default function Column({
               <h3 className="font-display font-bold text-sm text-slate-900 dark:text-slate-100 leading-none tracking-tight">
                 {label}
               </h3>
-              {(owner === "emin" || owner === "emre") && (
+              {(owner === "emin" || owner === "emre" || owner === "tuna") && (
                 <Link
                   href={`/${owner}`}
                   title={`${label} sayfasına git`}
@@ -247,6 +247,7 @@ export default function Column({
                   : "border-slate-200/70 dark:border-slate-700/70 bg-white/20 dark:bg-slate-800/10",
                 owner === "emin" && isOver && "border-indigo-400 text-indigo-500",
                 owner === "emre" && isOver && "border-amber-400 text-amber-500",
+                owner === "tuna" && isOver && "border-cyan-400 text-cyan-500",
                 owner === "shared" && isOver && "border-emerald-400 text-emerald-500"
               )}
               animate={isOver ? { scale: 1.02 } : { scale: 1 }}
@@ -274,6 +275,7 @@ export default function Column({
                   "mt-2 text-[11px] font-medium transition-colors",
                   owner === "emin" && "text-indigo-500 hover:text-indigo-700",
                   owner === "emre" && "text-amber-500 hover:text-amber-700",
+                  owner === "tuna" && "text-cyan-500 hover:text-cyan-700",
                   owner === "shared" && "text-emerald-500 hover:text-emerald-700"
                 )}
               >

@@ -580,28 +580,32 @@ export default function TaskDetailPage({ params }: { params: { id: string } }) {
           <div className="mb-6 space-y-3">
             {/* Author selector */}
             <div className="flex gap-2">
-              {(["emin", "emre"] as const).map((a) => {
+              {(["emin", "emre", "tuna"] as const).map((a) => {
                 const active = commentAuthor === a
-                const styles = {
-                  emin: active
-                    ? "bg-indigo-600 text-white border-indigo-600"
-                    : "border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-indigo-300",
-                  emre: active
-                    ? "bg-amber-500 text-white border-amber-500"
-                    : "border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-amber-300",
-                }
+                const activeStyle =
+                  a === "emin" ? "bg-indigo-600 text-white border-indigo-600"
+                  : a === "emre" ? "bg-amber-500 text-white border-amber-500"
+                  : "bg-cyan-500 text-white border-cyan-500"
+                const inactiveStyle =
+                  a === "emin" ? "border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-indigo-300"
+                  : a === "emre" ? "border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-amber-300"
+                  : "border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-cyan-300"
+                const dotStyle =
+                  a === "emin" ? "bg-indigo-100 text-indigo-700"
+                  : a === "emre" ? "bg-amber-100 text-amber-700"
+                  : "bg-cyan-100 text-cyan-700"
                 return (
                   <button
                     key={a}
                     onClick={() => setCommentAuthor(a)}
                     className={cn(
                       "flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-medium transition-all",
-                      styles[a]
+                      active ? activeStyle : inactiveStyle
                     )}
                   >
                     <div className={cn(
                       "w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold",
-                      active ? "bg-white/25" : a === "emin" ? "bg-indigo-100 text-indigo-700" : "bg-amber-100 text-amber-700"
+                      active ? "bg-white/25" : dotStyle
                     )}>
                       {a[0].toUpperCase()}
                     </div>
@@ -646,7 +650,18 @@ export default function TaskDetailPage({ params }: { params: { id: string } }) {
           ) : (
             <div className="space-y-3">
               {comments.map((comment) => {
-                const isEmin = comment.author === "emin"
+                const avatarClass =
+                  comment.author === "emin" ? "bg-gradient-to-br from-indigo-400 to-indigo-600"
+                  : comment.author === "emre" ? "bg-gradient-to-br from-amber-400 to-amber-600"
+                  : "bg-gradient-to-br from-cyan-400 to-cyan-600"
+                const bubbleClass =
+                  comment.author === "emin" ? "bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800/40"
+                  : comment.author === "emre" ? "bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800/40"
+                  : "bg-cyan-50 dark:bg-cyan-900/20 border border-cyan-100 dark:border-cyan-800/40"
+                const nameClass =
+                  comment.author === "emin" ? "text-indigo-700 dark:text-indigo-300"
+                  : comment.author === "emre" ? "text-amber-700 dark:text-amber-300"
+                  : "text-cyan-700 dark:text-cyan-300"
                 return (
                   <div
                     key={comment.id}
@@ -655,24 +670,16 @@ export default function TaskDetailPage({ params }: { params: { id: string } }) {
                     {/* Avatar */}
                     <div className={cn(
                       "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0 mt-0.5",
-                      isEmin ? "bg-gradient-to-br from-indigo-400 to-indigo-600" : "bg-gradient-to-br from-amber-400 to-amber-600"
+                      avatarClass
                     )}>
                       {comment.author[0].toUpperCase()}
                     </div>
 
                     {/* Bubble */}
                     <div className="flex-1 min-w-0">
-                      <div className={cn(
-                        "rounded-2xl rounded-tl-sm px-4 py-3",
-                        isEmin
-                          ? "bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800/40"
-                          : "bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800/40"
-                      )}>
+                      <div className={cn("rounded-2xl rounded-tl-sm px-4 py-3", bubbleClass)}>
                         <div className="flex items-center justify-between gap-2 mb-1">
-                          <span className={cn(
-                            "text-[11px] font-semibold",
-                            isEmin ? "text-indigo-700 dark:text-indigo-300" : "text-amber-700 dark:text-amber-300"
-                          )}>
+                          <span className={cn("text-[11px] font-semibold", nameClass)}>
                             {comment.author.charAt(0).toUpperCase() + comment.author.slice(1)}
                           </span>
                           <div className="flex items-center gap-1.5">

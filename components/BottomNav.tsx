@@ -13,6 +13,7 @@ export default function BottomNav() {
     { href: "/", label: "Ana Sayfa", icon: Home },
     { href: "/emin", label: "Emin", icon: null, initial: "E", color: "from-indigo-400 to-indigo-600" },
     { href: "/emre", label: "Emre", icon: null, initial: "E", color: "from-amber-400 to-amber-600" },
+    { href: "/tuna", label: "Tuna", icon: null, initial: "T", color: "from-cyan-400 to-cyan-600" },
     { href: "/calendar", label: "Takvim", icon: CalendarDays },
     { href: "/summary", label: "Özet", icon: BarChart3 },
     { href: "/settings", label: "Ayarlar", icon: Settings },

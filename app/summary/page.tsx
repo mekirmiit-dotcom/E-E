@@ -97,12 +97,14 @@ export default function SummaryPage() {
 
   const eminCompleted = completedInPeriod.filter((t) => t.owner === "emin")
   const emreCompleted = completedInPeriod.filter((t) => t.owner === "emre")
+  const tunaCompleted = completedInPeriod.filter((t) => t.owner === "tuna")
   const eminCount = eminCompleted.length
   const emreCount = emreCompleted.length
-  const vsTotal = eminCount + emreCount
-  const eminPct = vsTotal > 0 ? Math.round((eminCount / vsTotal) * 100) : 50
-  const emrePct = vsTotal > 0 ? 100 - eminPct : 50
-  const winner = eminCount > emreCount ? "emin" : emreCount > eminCount ? "emre" : ""
+  const tunaCount = tunaCompleted.length
+  const vsTotal = eminCount + emreCount + tunaCount
+  const maxCount = Math.max(eminCount, emreCount, tunaCount)
+  const winners = [eminCount, emreCount, tunaCount].filter((c) => c === maxCount).length
+  const winner = maxCount === 0 || winners > 1 ? "" : eminCount === maxCount ? "emin" : emreCount === maxCount ? "emre" : "tuna"
 
   const periodLabel = PERIOD_OPTIONS.find((o) => o.value === period)?.label ?? ""
   const periodRange = `${format(interval.start, "d MMM", { locale: tr })} – ${format(interval.end, "d MMM yyyy", { locale: tr })}`
@@ -185,21 +187,23 @@ export default function SummaryPage() {
             </h2>
           </div>
 
-          <div className="flex items-stretch gap-3">
-            <PersonCard name="Emin" color="indigo" count={eminCount} isWinner={winner === "emin"} tasks={eminCompleted} />
-            <div className="flex items-center text-slate-300 dark:text-slate-600 font-bold text-sm">VS</div>
-            <PersonCard name="Emre" color="amber" count={emreCount} isWinner={winner === "emre"} tasks={emreCompleted} />
+          <div className="flex items-stretch gap-2">
+            <PersonCard name="Emin" color="indigo" initial="E" count={eminCount} isWinner={winner === "emin"} tasks={eminCompleted} />
+            <PersonCard name="Emre" color="amber" initial="E" count={emreCount} isWinner={winner === "emre"} tasks={emreCompleted} />
+            <PersonCard name="Tuna" color="cyan" initial="T" count={tunaCount} isWinner={winner === "tuna"} tasks={tunaCompleted} />
           </div>
 
           {vsTotal > 0 && (
             <div className="space-y-1.5">
               <div className="flex h-2.5 rounded-full overflow-hidden">
-                <div className="bg-gradient-to-r from-indigo-400 to-indigo-600 transition-all duration-700" style={{ width: `${eminPct}%` }} />
-                <div className="bg-gradient-to-r from-amber-400 to-amber-600 transition-all duration-700" style={{ width: `${emrePct}%` }} />
+                <div className="bg-gradient-to-r from-indigo-400 to-indigo-600 transition-all duration-700" style={{ width: `${Math.round((eminCount / vsTotal) * 100)}%` }} />
+                <div className="bg-gradient-to-r from-amber-400 to-amber-600 transition-all duration-700" style={{ width: `${Math.round((emreCount / vsTotal) * 100)}%` }} />
+                <div className="bg-gradient-to-r from-cyan-400 to-cyan-600 transition-all duration-700 flex-1" />
               </div>
               <div className="flex justify-between text-[10px] text-slate-400 font-mono">
-                <span>Emin %{eminPct}</span>
-                <span>Emre %{emrePct}</span>
+                <span>Emin %{Math.round((eminCount / vsTotal) * 100)}</span>
+                <span>Emre %{Math.round((emreCount / vsTotal) * 100)}</span>
+                <span>Tuna %{Math.round((tunaCount / vsTotal) * 100)}</span>
               </div>
             </div>
           )}
@@ -290,24 +294,31 @@ function StatCard({ icon, bg, value, label }: { icon: React.ReactNode; bg: strin
 }
 
 function PersonCard({
-  name, color, count, isWinner, tasks,
+  name, color, initial, count, isWinner, tasks,
 }: {
-  name: string; color: "indigo" | "amber"; count: number; isWinner: boolean; tasks: Task[]
+  name: string; color: "indigo" | "amber" | "cyan"; initial: string; count: number; isWinner: boolean; tasks: Task[]
 }) {
   const overdue = tasks.filter(isOverdue).length
+  const gradientClass =
+    color === "indigo" ? "bg-gradient-to-br from-indigo-400 to-indigo-600"
+    : color === "amber" ? "bg-gradient-to-br from-amber-400 to-amber-600"
+    : "bg-gradient-to-br from-cyan-400 to-cyan-600"
+  const winnerBorderClass =
+    color === "indigo" ? "border-indigo-400 bg-indigo-50 dark:bg-indigo-900/20"
+    : color === "amber" ? "border-amber-400 bg-amber-50 dark:bg-amber-900/20"
+    : "border-cyan-400 bg-cyan-50 dark:bg-cyan-900/20"
+  const countClass =
+    color === "indigo" ? "text-indigo-600" : color === "amber" ? "text-amber-600" : "text-cyan-600"
   return (
     <div className={cn(
-      "flex-1 rounded-2xl p-4 text-center border-2 transition-all space-y-1",
-      isWinner
-        ? color === "indigo" ? "border-indigo-400 bg-indigo-50 dark:bg-indigo-900/20" : "border-amber-400 bg-amber-50 dark:bg-amber-900/20"
-        : "border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/40"
+      "flex-1 rounded-2xl p-3 text-center border-2 transition-all space-y-1",
+      isWinner ? winnerBorderClass : "border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/40"
     )}>
-      <div className={cn(
-        "w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-lg mx-auto",
-        color === "indigo" ? "bg-gradient-to-br from-indigo-400 to-indigo-600" : "bg-gradient-to-br from-amber-400 to-amber-600"
-      )}>E</div>
+      <div className={cn("w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-base mx-auto", gradientClass)}>
+        {initial}
+      </div>
       <p className="font-semibold text-slate-800 dark:text-slate-200 text-sm">{name}</p>
-      <p className={cn("text-2xl font-display font-bold", color === "indigo" ? "text-indigo-600" : "text-amber-600")}>{count}</p>
+      <p className={cn("text-2xl font-display font-bold", countClass)}>{count}</p>
       <p className="text-[10px] text-slate-500">tamamlandı</p>
       {overdue > 0 && <p className="text-[10px] text-red-500">{overdue} gecikmiş</p>}
       {isWinner && <p className="text-[10px] text-amber-500 font-medium">🏆 Lider</p>}
@@ -319,7 +330,10 @@ function TaskRow({ task, done }: { task: Task; done?: boolean }) {
   const ownerClass =
     task.owner === "emin" ? "bg-gradient-to-br from-indigo-400 to-indigo-600"
     : task.owner === "emre" ? "bg-gradient-to-br from-amber-400 to-amber-600"
+    : task.owner === "tuna" ? "bg-gradient-to-br from-cyan-400 to-cyan-600"
     : "bg-gradient-to-br from-emerald-400 to-emerald-600"
+  const ownerInitial =
+    task.owner === "shared" ? "◆" : task.owner === "tuna" ? "T" : "E"
 
   return (
     <Link
@@ -327,7 +341,7 @@ function TaskRow({ task, done }: { task: Task; done?: boolean }) {
       className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors"
     >
       <div className={cn("w-6 h-6 rounded-full flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0", ownerClass)}>
-        {task.owner === "shared" ? "◆" : "E"}
+        {ownerInitial}
       </div>
       <div className="flex-1 min-w-0">
         <p className={cn("text-sm truncate", done ? "text-slate-500 dark:text-slate-400 line-through decoration-slate-300" : "text-slate-700 dark:text-slate-300")}>

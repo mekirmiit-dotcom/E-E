@@ -39,10 +39,19 @@ async function sendPush(title: string, body: string) {
 }
 
 export async function GET(req: Request) {
-  // Sadece Pazartesi çalışsın (cron dışında deploy vb. tetiklenirse atla)
-  // ?force=1 ile manuel test edilebilir
   const url = new URL(req.url)
   const force = url.searchParams.get("force") === "1"
+
+  // CRON_SECRET varsa header kontrolü yap — deploy-triggered çağrıları reddet
+  const cronSecret = process.env.CRON_SECRET
+  if (!force && cronSecret) {
+    const auth = req.headers.get("authorization")
+    if (auth !== `Bearer ${cronSecret}`) {
+      return NextResponse.json({ ok: false, reason: "unauthorized" }, { status: 401 })
+    }
+  }
+
+  // Sadece Pazartesi çalışsın
   const nowTR = new Date(Date.now() + 3 * 60 * 60 * 1000) // UTC+3
   const dayOfWeek = nowTR.getUTCDay() // 0=Pazar, 1=Pazartesi
   if (!force && dayOfWeek !== 1) {
@@ -72,12 +81,20 @@ export async function GET(req: Request) {
 
   const eminCount = completedTasks?.filter((t) => t.owner === "emin").length ?? 0
   const emreCount = completedTasks?.filter((t) => t.owner === "emre").length ?? 0
+  const tunaCount = completedTasks?.filter((t) => t.owner === "tuna").length ?? 0
 
+  const maxCount = Math.max(eminCount, emreCount, tunaCount)
   let mostActive = ""
-  if (eminCount > emreCount) mostActive = `En aktif: Emin 🏆`
-  else if (emreCount > eminCount) mostActive = `En aktif: Emre 🏆`
-  else if (eminCount > 0) mostActive = `Emin ve Emre eşit 🤝`
-  else mostActive = `Bu hafta görev tamamlanmadı`
+  if (maxCount === 0) {
+    mostActive = `Bu hafta görev tamamlanmadı`
+  } else {
+    const leaders = [
+      eminCount === maxCount ? "Emin" : null,
+      emreCount === maxCount ? "Emre" : null,
+      tunaCount === maxCount ? "Tuna" : null,
+    ].filter(Boolean)
+    mostActive = leaders.length === 1 ? `En aktif: ${leaders[0]} 🏆` : `${leaders.join(" & ")} eşit 🤝`
+  }
 
   const overdueText = overdueCount > 0 ? `, ${overdueCount} görev gecikti` : ""
   const message = `📊 Haftalık Özet: Bu hafta ${completedCount} görev tamamlandı${overdueText}. ${mostActive}`
@@ -98,5 +115,5 @@ export async function GET(req: Request) {
 
   await sendPush(title, message)
 
-  return NextResponse.json({ ok: true, completedCount, overdueCount, eminCount, emreCount, message })
+  return NextResponse.json({ ok: true, completedCount, overdueCount, eminCount, emreCount, tunaCount, message })
 }

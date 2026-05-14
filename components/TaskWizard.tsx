@@ -123,6 +123,7 @@ export default function TaskWizard({ defaultOwner }: TaskWizardProps) {
   const ownerOptions: { value: Owner; label: string; initial: string; color: string; darkColor: string; gradient: string }[] = [
     { value: "emin", label: "Emin", initial: "E", color: "border-indigo-300 bg-indigo-50 text-indigo-700", darkColor: "dark:border-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300", gradient: "from-indigo-400 to-indigo-600" },
     { value: "emre", label: "Emre", initial: "E", color: "border-amber-300 bg-amber-50 text-amber-700", darkColor: "dark:border-amber-700 dark:bg-amber-900/30 dark:text-amber-300", gradient: "from-amber-400 to-amber-600" },
+    { value: "tuna", label: "Tuna", initial: "T", color: "border-cyan-300 bg-cyan-50 text-cyan-700", darkColor: "dark:border-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-300", gradient: "from-cyan-400 to-cyan-600" },
     { value: "shared", label: "Ortak", initial: "◆", color: "border-emerald-300 bg-emerald-50 text-emerald-700", darkColor: "dark:border-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300", gradient: "from-emerald-400 to-emerald-600" },
   ]
 
