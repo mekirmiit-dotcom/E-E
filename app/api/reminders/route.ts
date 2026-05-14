@@ -2,7 +2,7 @@ import { NextResponse } from "next/server"
 import { supabase } from "@/lib/supabase"
 import webpush from "web-push"
 
-type Owner = "emin" | "emre" | "shared"
+type Owner = "emin" | "emre" | "tuna" | "shared"
 
 async function sendPush(title: string, body: string, taskId?: string) {
   webpush.setVapidDetails(
@@ -49,7 +49,17 @@ async function alreadySent(taskId: string, keyword: string): Promise<boolean> {
   return (data?.length ?? 0) > 0
 }
 
-export async function GET() {
+export async function GET(req: Request) {
+  // Vercel cron calls include Authorization: Bearer <CRON_SECRET>
+  // Deploy-triggered calls do NOT include this header — reject them
+  const cronSecret = process.env.CRON_SECRET
+  if (cronSecret) {
+    const auth = req.headers.get("authorization")
+    if (auth !== `Bearer ${cronSecret}`) {
+      return NextResponse.json({ ok: false, reason: "unauthorized" }, { status: 401 })
+    }
+  }
+
   const now = new Date()
 
   // Kullanıcı tercihlerini çek

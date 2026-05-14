@@ -20,7 +20,7 @@ export async function getComments(taskId: string): Promise<Comment[]> {
 export async function addComment(
   taskId: string,
   taskTitle: string,
-  author: "emin" | "emre",
+  author: "emin" | "emre" | "tuna",
   content: string
 ): Promise<Comment | null> {
   const { data, error } = await supabase
@@ -34,11 +34,12 @@ export async function addComment(
     return null
   }
 
-  const authorLabel = author === "emin" ? "Emin" : "Emre"
+  const authorLabels: Record<"emin" | "emre" | "tuna", string> = { emin: "Emin", emre: "Emre", tuna: "Tuna" }
+  const authorLabel = authorLabels[author]
   const preview = content.length > 50 ? content.slice(0, 50) + "…" : content
   const msg = `${authorLabel}, "${taskTitle}" görevine yorum yazdı: "${preview}"`
-  // Yorum yazan kişinin karşısındakine bildirim git
-  const recipient = author === "emin" ? "emre" : "emin"
+  // Yorum yazan kişi dışındaki herkese bildirim gönder
+  const recipient = author === "emin" ? "emre" : author === "emre" ? "emin" : "both"
 
   await createNotification(taskId, msg, "assigned", recipient, "💬 Yeni Yorum")
 

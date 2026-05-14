@@ -12,7 +12,7 @@ type TaskFile = {
   file_url: string
   file_type: string
   file_size: number
-  uploaded_by: "emin" | "emre"
+  uploaded_by: "emin" | "emre" | "tuna"
   created_at: string
 }
 
@@ -33,7 +33,7 @@ export default function FileAttachments({ taskId }: { taskId: string }) {
   const [files, setFiles] = useState<TaskFile[]>([])
   const [uploading, setUploading] = useState(false)
   const [dragOver, setDragOver] = useState(false)
-  const [uploader, setUploader] = useState<"emin" | "emre">("emin")
+  const [uploader, setUploader] = useState<"emin" | "emre" | "tuna">("emin")
   const [error, setError] = useState<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 

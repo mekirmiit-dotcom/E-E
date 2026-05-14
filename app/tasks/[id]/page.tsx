@@ -51,7 +51,7 @@ export default function TaskDetailPage({ params }: { params: { id: string } }) {
 
   // Comments state — default author from logged-in user
   const [comments, setComments] = useState<Comment[]>([])
-  const [commentAuthor, setCommentAuthor] = useState<"emin" | "emre">("emin")
+  const [commentAuthor, setCommentAuthor] = useState<"emin" | "emre" | "tuna">("emin")
 
   // Giriş yapan kullanıcıya göre yorum yazarını ayarla
   useEffect(() => {

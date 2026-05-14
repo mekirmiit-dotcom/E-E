@@ -2,10 +2,10 @@
 
 import { supabase, type Notification } from "./supabase"
 
-export type Recipient = "emin" | "emre" | "both"
+export type Recipient = "emin" | "emre" | "tuna" | "both"
 
 // recipient: bildirimi görecek kişi — currentUser'a göre filtreler
-export async function getNotifications(currentUser?: "emin" | "emre"): Promise<Notification[]> {
+export async function getNotifications(currentUser?: "emin" | "emre" | "tuna"): Promise<Notification[]> {
   let query = supabase
     .from("notifications")
     .select("*")
@@ -26,7 +26,7 @@ export async function markNotificationRead(id: string): Promise<void> {
   await supabase.from("notifications").update({ read: true }).eq("id", id)
 }
 
-export async function markAllNotificationsRead(currentUser?: "emin" | "emre"): Promise<void> {
+export async function markAllNotificationsRead(currentUser?: "emin" | "emre" | "tuna"): Promise<void> {
   let query = supabase.from("notifications").update({ read: true }).eq("read", false)
   if (currentUser) {
     query = query.or(`recipient.eq.both,recipient.eq.${currentUser}`)
@@ -73,7 +73,7 @@ export async function createNotification(
 }
 
 // Register service worker and subscribe to push
-export async function registerPush(owner?: "emin" | "emre"): Promise<boolean> {
+export async function registerPush(owner?: "emin" | "emre" | "tuna"): Promise<boolean> {
   if (typeof window === "undefined") return false
   if (!("serviceWorker" in navigator) || !("PushManager" in window)) return false
 
