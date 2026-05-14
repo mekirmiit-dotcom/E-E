@@ -274,6 +274,7 @@ export default function TaskDetailPage({ params }: { params: { id: string } }) {
   const ownerColors: Record<Owner, string> = {
     emin: "bg-indigo-100 text-indigo-700 border-indigo-200",
     emre: "bg-amber-100 text-amber-700 border-amber-200",
+    tuna: "bg-cyan-100 text-cyan-700 border-cyan-200",
     shared: "bg-emerald-100 text-emerald-700 border-emerald-200",
   }
 
@@ -372,7 +373,7 @@ export default function TaskDetailPage({ params }: { params: { id: string } }) {
               <div>
                 <Label className="mb-2 block text-xs">Sorumlu</Label>
                 <div className="flex flex-col gap-1.5">
-                  {(["emin", "emre", "shared"] as Owner[]).map((o) => (
+                  {(["emin", "emre", "tuna", "shared"] as Owner[]).map((o) => (
                     <button key={o} onClick={() => setOwner(o)}
                       className={cn("flex items-center gap-2 py-2 px-3 rounded-xl border text-xs font-body transition-all",
                         owner === o ? ownerColors[o] + " border-current" : "border-slate-200 bg-white text-slate-600")}>
