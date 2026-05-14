@@ -35,6 +35,7 @@ export type Task = {
   priority: Priority
   status: Status
   due_date: string | null
+  due_time: string | null // "HH:MM"
   tags: string[]
   checklist: ChecklistItem[]
   created_at: string
@@ -48,6 +49,7 @@ export type ChecklistItem = {
   id: string
   text: string
   done: boolean
+  due_time?: string // "HH:MM"
 }
 
 export type Comment = {

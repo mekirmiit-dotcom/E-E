@@ -1,6 +1,6 @@
 "use client"
 
-import React from "react"
+import React, { useState, useEffect } from "react"
 import { useSortable } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
 import { motion } from "framer-motion"
@@ -36,7 +36,76 @@ interface TaskCardProps {
 
 const DRAG_SHADOW = "0 32px 64px rgba(15,23,42,0.32), 0 16px 32px rgba(15,23,42,0.18), 0 0 0 1.5px rgba(99,102,241,0.5), inset 0 1px 0 rgba(255,255,255,0.95)"
 const IDLE_SHADOW = "0 1px 2px rgba(15,23,42,0.03)"
-const HOVER_SHADOW = "0 4px 6px rgba(15,23,42,0.03), 0 12px 24px rgba(15,23,42,0.06)"
+
+function calcTimePct(createdAt: string, dueDate: string, dueTime: string): number {
+  const created = new Date(createdAt).getTime()
+  const deadline = new Date(`${dueDate}T${dueTime}:00`).getTime()
+  if (deadline <= created) return 0
+  const elapsed = Date.now() - created
+  const total = deadline - created
+  return Math.max(0, (elapsed / total) * 100)
+}
+
+function HourglassBar({ task }: { task: Task }) {
+  const [pct, setPct] = useState(() =>
+    calcTimePct(task.created_at, task.due_date!, task.due_time!)
+  )
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setPct(calcTimePct(task.created_at, task.due_date!, task.due_time!))
+    }, 60_000)
+    return () => clearInterval(timer)
+  }, [task.created_at, task.due_date, task.due_time])
+
+  const clampedPct = Math.min(pct, 100)
+  const overdue = pct >= 100
+  const critical = pct >= 85 && !overdue
+  const warning = pct >= 60 && !critical && !overdue
+
+  const fillColor = overdue || critical ? "bg-red-500" : warning ? "bg-amber-400" : "bg-emerald-500"
+  const trackColor = overdue || critical
+    ? "bg-red-100 dark:bg-red-900/30"
+    : warning
+    ? "bg-amber-100 dark:bg-amber-900/30"
+    : "bg-emerald-100 dark:bg-emerald-900/30"
+  const labelColor = overdue
+    ? "text-red-600 dark:text-red-400"
+    : critical
+    ? "text-red-500 dark:text-red-400"
+    : warning
+    ? "text-amber-600 dark:text-amber-400"
+    : "text-emerald-600 dark:text-emerald-500"
+
+  return (
+    <div className="mt-2.5 pt-2.5 border-t border-slate-100/80 dark:border-slate-700/60">
+      <div className="flex items-center gap-1.5">
+        <span className={cn("text-xs leading-none flex-shrink-0 animate-hourglass", overdue && "animate-pulse-danger")}>
+          ⏳
+        </span>
+        <div
+          className={cn(
+            "flex-1 h-2 rounded-full overflow-hidden relative hourglass-bar-3d",
+            trackColor
+          )}
+        >
+          <div
+            className={cn(
+              "h-full rounded-full",
+              fillColor,
+              overdue && "animate-pulse-danger",
+              critical && "animate-shake-bar"
+            )}
+            style={{ width: `${clampedPct}%`, transition: "width 1.5s ease-out" }}
+          />
+        </div>
+        <span className={cn("text-[9px] font-mono tabular-nums flex-shrink-0 w-10 text-right", labelColor)}>
+          {overdue ? "GECİKTİ" : `%${Math.round(clampedPct)}`}
+        </span>
+      </div>
+    </div>
+  )
+}
 
 export default function TaskCard({ task, overlay = false, settled = false }: TaskCardProps) {
   const router = useRouter()
@@ -75,7 +144,6 @@ export default function TaskCard({ task, overlay = false, settled = false }: Tas
 
   const colorHex = task.color ? TASK_COLORS.find((c) => c.id === task.color)?.hex : null
 
-  // framer-motion variants
   const motionAnimate = overlay
     ? {
         scale: 1.05,
@@ -101,7 +169,6 @@ export default function TaskCard({ task, overlay = false, settled = false }: Tas
     : { type: "spring" as const, stiffness: 300, damping: 25 }
 
   return (
-    // Outer div: tüm kart drag handle — touch-action:manipulation scroll'u korur
     <div
       ref={setNodeRef}
       style={{ ...style, touchAction: "manipulation" }}
@@ -109,7 +176,6 @@ export default function TaskCard({ task, overlay = false, settled = false }: Tas
       {...listeners}
       className="select-none"
     >
-      {/* Inner motion.div: framer-motion controls visual state */}
       <motion.div
         className={cn(
           "task-card group animate-stagger-in relative overflow-hidden",
@@ -241,9 +307,17 @@ export default function TaskCard({ task, overlay = false, settled = false }: Tas
                 <Calendar className="h-3 w-3" />
               )}
               {format(parseISO(task.due_date), "d MMM", { locale: tr })}
+              {task.due_time && (
+                <span className="ml-0.5 opacity-75">{task.due_time}</span>
+              )}
             </div>
           )}
         </div>
+
+        {/* Hourglass time progress — only when both due_date and due_time exist */}
+        {task.due_date && task.due_time && !isDragging && (
+          <HourglassBar task={task} />
+        )}
       </motion.div>
     </div>
   )

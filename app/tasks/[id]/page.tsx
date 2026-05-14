@@ -45,6 +45,8 @@ export default function TaskDetailPage({ params }: { params: { id: string } }) {
   const [priority, setPriority] = useState<Priority>("medium")
   const [status, setStatus] = useState<Status>("todo")
   const [dueDate, setDueDate] = useState("")
+  const [dueTime, setDueTime] = useState("")
+  const [editingTimeItemId, setEditingTimeItemId] = useState<string | null>(null)
   const [tags, setTags] = useState<string[]>([])
   const [checklist, setChecklist] = useState<ChecklistItem[]>([])
   const [color, setColor] = useState<string | null>(null)
@@ -102,6 +104,7 @@ export default function TaskDetailPage({ params }: { params: { id: string } }) {
     setPriority(t.priority)
     setStatus(t.status)
     setDueDate(t.due_date || "")
+    setDueTime(t.due_time || "")
     setTags(t.tags)
     setChecklist(t.checklist)
     setColor(t.color || null)
@@ -134,6 +137,7 @@ export default function TaskDetailPage({ params }: { params: { id: string } }) {
       title, description: description || null,
       owner, priority, status,
       due_date: dueDate || null,
+      due_time: dueTime || null,
       tags, checklist, color,
     })
     setSaving(false)
@@ -413,6 +417,16 @@ export default function TaskDetailPage({ params }: { params: { id: string } }) {
                 <Label className="mb-2 block text-xs">Son Tarih</Label>
                 <Input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} className="text-sm" />
               </div>
+              <div>
+                <Label className="mb-2 block text-xs">Bitiş Saati <span className="text-slate-400 font-normal normal-case">· isteğe bağlı</span></Label>
+                <Input
+                  type="time"
+                  value={dueTime}
+                  onChange={(e) => setDueTime(e.target.value)}
+                  disabled={!dueDate}
+                  className="text-sm disabled:opacity-40"
+                />
+              </div>
               <div className="col-span-2">
                 <Label className="mb-2 block text-xs">Kart Rengi <span className="text-slate-400 font-normal normal-case">· isteğe bağlı</span></Label>
                 <div className="flex flex-wrap gap-2 items-center">
@@ -466,7 +480,9 @@ export default function TaskDetailPage({ params }: { params: { id: string } }) {
                 <span className="text-xs text-muted-foreground font-body">Son Tarih</span>
                 {task.due_date ? (
                   <span className={cn("ml-auto text-xs font-mono", overdue ? "text-red-600" : soon ? "text-amber-600" : "text-slate-600")}>
-                    {format(parseISO(task.due_date), "d MMM yyyy", { locale: tr })}{overdue && " ⚠️"}
+                    {format(parseISO(task.due_date), "d MMM yyyy", { locale: tr })}
+                    {task.due_time && <span className="ml-1 opacity-75">{task.due_time}</span>}
+                    {overdue && " ⚠️"}
                   </span>
                 ) : (
                   <span className="ml-auto text-xs text-muted-foreground font-mono">—</span>
@@ -544,6 +560,40 @@ export default function TaskDetailPage({ params }: { params: { id: string } }) {
                     item.done ? "line-through text-muted-foreground" : "text-slate-700 dark:text-slate-300")}>
                     {item.text}
                   </span>
+                  {/* Checklist item saat */}
+                  {editingTimeItemId === item.id ? (
+                    <input
+                      type="time"
+                      value={item.due_time ?? ""}
+                      autoFocus
+                      onChange={(e) => {
+                        const updated = checklist.map((c) =>
+                          c.id === item.id ? { ...c, due_time: e.target.value || undefined } : c
+                        )
+                        setChecklist(updated)
+                      }}
+                      onBlur={async () => {
+                        setEditingTimeItemId(null)
+                        if (!editing) await updateTask(params.id, { checklist })
+                      }}
+                      className="h-7 w-24 text-xs rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 px-2 text-slate-700 dark:text-slate-200"
+                    />
+                  ) : item.due_time ? (
+                    <button
+                      onClick={() => setEditingTimeItemId(item.id)}
+                      className="flex items-center gap-1 text-[10px] font-mono text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 px-1.5 py-0.5 rounded-md hover:bg-indigo-100 transition-colors flex-shrink-0"
+                    >
+                      <Clock className="h-2.5 w-2.5" />{item.due_time}
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => setEditingTimeItemId(item.id)}
+                      className="text-slate-300 dark:text-slate-600 hover:text-indigo-400 transition-colors opacity-0 group-hover:opacity-100 flex-shrink-0"
+                      title="Saat ekle"
+                    >
+                      <Clock className="h-3.5 w-3.5" />
+                    </button>
+                  )}
                   {editing && (
                     <button onClick={() => removeCheckItem(item.id)} className="text-slate-300 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100">
                       <X className="h-4 w-4" />

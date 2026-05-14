@@ -100,7 +100,7 @@ export async function GET(req: Request) {
 
   const { data: tasks } = await supabase
     .from("tasks")
-    .select("id, title, due_date, status, owner")
+    .select("id, title, due_date, due_time, status, owner")
     .not("due_date", "is", null)
     .neq("status", "done")
     .in("due_date", uniqueDueDates)
@@ -139,13 +139,16 @@ export async function GET(req: Request) {
         let pushTitle: string
         let notifType: string
 
+        const timeStr = (task as { due_time?: string | null }).due_time
+          ? ` (${(task as { due_time?: string | null }).due_time})`
+          : ""
         if (hoursAhead >= 24) {
           const days = Math.round(hoursAhead / 24)
-          msg = `⏰ ${ownerName}, "${task.title}" görevi ${days} gün sonra teslim!`
+          msg = `⏰ ${ownerName}, "${task.title}" görevi ${days} gün sonra${timeStr} teslim edilmeli!`
           pushTitle = `⏰ ${days} Gün Kaldı`
           notifType = "reminder"
         } else {
-          msg = `⏰ ${ownerName}, "${task.title}" görevi ${hoursAhead} saat sonra teslim!`
+          msg = `⏰ ${ownerName}, "${task.title}" görevi ${hoursAhead} saat sonra${timeStr} teslim edilmeli!`
           pushTitle = `⏰ ${hoursAhead} Saat Kaldı!`
           notifType = hoursAhead <= 1 ? "overdue" : "reminder"
         }

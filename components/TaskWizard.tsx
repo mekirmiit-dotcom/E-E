@@ -13,6 +13,7 @@ import {
   Target,
   Calendar,
   ListChecks,
+  Clock,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -39,6 +40,7 @@ interface WizardData {
   priority: Priority
   status: Status
   due_date: string
+  due_time: string
   tags: string[]
   checklist: ChecklistItem[]
   color: string | null
@@ -46,7 +48,7 @@ interface WizardData {
 
 const DEFAULT_DATA: WizardData = {
   title: "", description: "", owner: "shared", priority: "medium",
-  status: "todo", due_date: "", tags: [], checklist: [], color: null,
+  status: "todo", due_date: "", due_time: "", tags: [], checklist: [], color: null,
 }
 
 interface TaskWizardProps { defaultOwner?: Owner }
@@ -57,6 +59,7 @@ export default function TaskWizard({ defaultOwner }: TaskWizardProps) {
   const [data, setData] = useState<WizardData>({ ...DEFAULT_DATA, owner: defaultOwner || "shared" })
   const [tagInput, setTagInput] = useState("")
   const [checkInput, setCheckInput] = useState("")
+  const [editingTimeItemId, setEditingTimeItemId] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
 
   function update<K extends keyof WizardData>(key: K, value: WizardData[K]) {
@@ -87,7 +90,9 @@ export default function TaskWizard({ defaultOwner }: TaskWizardProps) {
       title: data.title.trim(),
       description: data.description.trim() || null,
       owner: data.owner, priority: data.priority, status: data.status,
-      due_date: data.due_date || null, tags: data.tags, checklist: data.checklist,
+      due_date: data.due_date || null,
+      due_time: data.due_time || null,
+      tags: data.tags, checklist: data.checklist,
       color: data.color, order_index: 999,
     })
     if (!task) {
@@ -107,11 +112,12 @@ export default function TaskWizard({ defaultOwner }: TaskWizardProps) {
           "assigned"
         )
       }
-      // Ayrıca son tarih varsa hatırlatıcı da ekle
+      // Son tarih varsa hatırlatıcı ekle
       if (task.due_date) {
+        const timeStr = task.due_time ? ` saat ${task.due_time}'de` : ""
         await createNotification(
           task.id,
-          `⏰ "${task.title}" son tarihi: ${format(parseISO(task.due_date), "d MMMM yyyy", { locale: tr })}`,
+          `⏰ "${task.title}" son tarihi: ${format(parseISO(task.due_date), "d MMMM yyyy", { locale: tr })}${timeStr}`,
           "reminder"
         )
       }
@@ -320,6 +326,26 @@ export default function TaskWizard({ defaultOwner }: TaskWizardProps) {
                 </Label>
                 <Input id="duedate" type="date" value={data.due_date} onChange={(e) => update("due_date", e.target.value)}
                   min={new Date().toISOString().split("T")[0]} className="h-12 rounded-xl text-sm" />
+                {data.due_date && (
+                  <div className="mt-3">
+                    <Label htmlFor="duetime" className="mb-2 block text-xs font-semibold text-slate-900 dark:text-slate-100 uppercase tracking-wider">
+                      Bitiş Saati <span className="text-slate-500 dark:text-slate-400 normal-case font-normal">· isteğe bağlı</span>
+                    </Label>
+                    <Input
+                      id="duetime"
+                      type="time"
+                      value={data.due_time}
+                      onChange={(e) => update("due_time", e.target.value)}
+                      className="h-12 rounded-xl text-sm"
+                    />
+                    {data.due_time && (
+                      <p className="text-[11px] text-indigo-600 dark:text-indigo-400 mt-1.5 flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        Kum saati sayacı aktif olacak
+                      </p>
+                    )}
+                  </div>
+                )}
                 <div className="flex gap-1.5 mt-2.5 flex-wrap">
                   {[{ label: "Bugün", days: 0 }, { label: "Yarın", days: 1 }, { label: "3 gün", days: 3 }, { label: "1 hafta", days: 7 }, { label: "2 hafta", days: 14 }].map((q) => (
                     <button key={q.label} type="button"
@@ -426,6 +452,34 @@ export default function TaskWizard({ defaultOwner }: TaskWizardProps) {
                     <div key={item.id} className="flex items-center gap-3 py-2.5 px-3.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 group hover:bg-white dark:hover:bg-slate-700/50 hover:border-slate-200 dark:hover:border-slate-600 transition-colors animate-scale-in">
                       <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400 w-5 tabular-nums">{String(idx + 1).padStart(2, "0")}</span>
                       <span className="flex-1 text-sm text-slate-800 dark:text-slate-200">{item.text}</span>
+                      {/* Checklist item saat */}
+                      {editingTimeItemId === item.id ? (
+                        <input
+                          type="time"
+                          value={item.due_time ?? ""}
+                          autoFocus
+                          onChange={(e) => update("checklist", data.checklist.map((c) =>
+                            c.id === item.id ? { ...c, due_time: e.target.value || undefined } : c
+                          ))}
+                          onBlur={() => setEditingTimeItemId(null)}
+                          className="h-7 w-24 text-xs rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 px-2 text-slate-700 dark:text-slate-200"
+                        />
+                      ) : item.due_time ? (
+                        <button
+                          onClick={() => setEditingTimeItemId(item.id)}
+                          className="flex items-center gap-1 text-[10px] font-mono text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 px-1.5 py-0.5 rounded-md hover:bg-indigo-100 transition-colors"
+                        >
+                          <Clock className="h-2.5 w-2.5" /> {item.due_time}
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => setEditingTimeItemId(item.id)}
+                          className="text-slate-300 dark:text-slate-600 hover:text-indigo-400 transition-colors opacity-0 group-hover:opacity-100"
+                          title="Saat ekle"
+                        >
+                          <Clock className="h-3.5 w-3.5" />
+                        </button>
+                      )}
                       <button onClick={() => update("checklist", data.checklist.filter((c) => c.id !== item.id))} className="text-slate-300 dark:text-slate-600 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100">
                         <X className="h-4 w-4" />
                       </button>
