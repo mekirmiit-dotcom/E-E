@@ -55,42 +55,49 @@ export default function Column({
   const dotColor = {
     emin: "bg-indigo-500",
     emre: "bg-amber-500",
+    tuna: "bg-cyan-500",
     shared: "bg-emerald-500",
   }[owner]
 
   const progressColor = {
     emin: "bg-indigo-400",
     emre: "bg-amber-400",
+    tuna: "bg-cyan-400",
     shared: "bg-emerald-400",
   }[owner]
 
   const borderGlow = {
     emin: "border-indigo-400/50",
     emre: "border-amber-400/50",
+    tuna: "border-cyan-400/50",
     shared: "border-emerald-400/50",
   }[owner]
 
   const shimmerColor = {
     emin: "bg-indigo-400/20",
     emre: "bg-amber-400/20",
+    tuna: "bg-cyan-400/20",
     shared: "bg-emerald-400/20",
   }[owner]
 
   const glowColor = {
     emin: "from-indigo-400/15 via-indigo-300/8 to-transparent",
     emre: "from-amber-400/15 via-amber-300/8 to-transparent",
+    tuna: "from-cyan-400/15 via-cyan-300/8 to-transparent",
     shared: "from-emerald-400/15 via-emerald-300/8 to-transparent",
   }[owner]
 
   const columnGlowShadow = {
     emin: "0 0 0 2px rgba(99,102,241,0.5), 0 0 32px 4px rgba(99,102,241,0.12)",
     emre: "0 0 0 2px rgba(245,158,11,0.5), 0 0 32px 4px rgba(245,158,11,0.12)",
+    tuna: "0 0 0 2px rgba(6,182,212,0.5), 0 0 32px 4px rgba(6,182,212,0.12)",
     shared: "0 0 0 2px rgba(16,185,129,0.5), 0 0 32px 4px rgba(16,185,129,0.12)",
   }[owner]
 
   const rippleBorder = {
     emin: "2px solid rgba(99,102,241,0.6)",
     emre: "2px solid rgba(245,158,11,0.6)",
+    tuna: "2px solid rgba(6,182,212,0.6)",
     shared: "2px solid rgba(16,185,129,0.6)",
   }[owner]
 
