@@ -46,12 +46,23 @@ function calcTimePct(createdAt: string, dueDate: string, dueTime: string): numbe
   return Math.max(0, (elapsed / total) * 100)
 }
 
-function HourglassBar({ task }: { task: Task }) {
-  const [pct, setPct] = useState(() =>
-    calcTimePct(task.created_at, task.due_date!, task.due_time!)
-  )
+function fmtRemaining(dueDate: string, dueTime: string): string {
+  const diff = new Date(`${dueDate}T${dueTime}:00`).getTime() - Date.now()
+  if (diff <= 0) return "GECİKTİ"
+  const d = Math.floor(diff / 86400000)
+  const h = Math.floor((diff % 86400000) / 3600000)
+  const m = Math.floor((diff % 3600000) / 60000)
+  if (d > 0) return `${d}g ${h}s`
+  if (h > 0) return `${h}s ${m}dk`
+  return `${m}dk`
+}
+
+function HourglassRing({ task }: { task: Task }) {
+  const [pct, setPct] = useState(0)
 
   useEffect(() => {
+    // 0'dan başla → gerçek değere geç (animasyon tetikler)
+    setPct(calcTimePct(task.created_at, task.due_date!, task.due_time!))
     const timer = setInterval(() => {
       setPct(calcTimePct(task.created_at, task.due_date!, task.due_time!))
     }, 60_000)
@@ -60,48 +71,60 @@ function HourglassBar({ task }: { task: Task }) {
 
   const clampedPct = Math.min(pct, 100)
   const overdue = pct >= 100
-  const critical = pct >= 85 && !overdue
-  const warning = pct >= 60 && !critical && !overdue
 
-  const fillColor = overdue || critical ? "bg-red-500" : warning ? "bg-amber-400" : "bg-emerald-500"
-  const trackColor = overdue || critical
-    ? "bg-red-100 dark:bg-red-900/30"
-    : warning
-    ? "bg-amber-100 dark:bg-amber-900/30"
-    : "bg-emerald-100 dark:bg-emerald-900/30"
-  const labelColor = overdue
-    ? "text-red-600 dark:text-red-400"
-    : critical
-    ? "text-red-500 dark:text-red-400"
-    : warning
-    ? "text-amber-600 dark:text-amber-400"
-    : "text-emerald-600 dark:text-emerald-500"
+  const r = 10
+  const circ = 2 * Math.PI * r
+  const dashOffset = circ * (1 - clampedPct / 100)
+
+  // yeşil → sarı → turuncu → kırmızı
+  const strokeColor =
+    overdue || pct >= 90 ? "#ef4444"
+    : pct >= 75 ? "#f97316"
+    : pct >= 60 ? "#eab308"
+    : "#22c55e"
+
+  const textCls =
+    overdue || pct >= 90 ? "text-red-500 dark:text-red-400"
+    : pct >= 75 ? "text-orange-500 dark:text-orange-400"
+    : pct >= 60 ? "text-yellow-600 dark:text-yellow-400"
+    : "text-emerald-600 dark:text-emerald-400"
+
+  const remaining = fmtRemaining(task.due_date!, task.due_time!)
 
   return (
     <div className="mt-2.5 pt-2.5 border-t border-slate-100/80 dark:border-slate-700/60">
-      <div className="flex items-center gap-1.5">
-        <span className={cn("text-xs leading-none flex-shrink-0 animate-hourglass", overdue && "animate-pulse-danger")}>
-          ⏳
-        </span>
-        <div
-          className={cn(
-            "flex-1 h-2 rounded-full overflow-hidden relative hourglass-bar-3d",
-            trackColor
-          )}
+      <div className={cn("flex items-center gap-2", overdue && "animate-pulse-danger")}>
+        <svg
+          width="28" height="28" viewBox="0 0 28 28"
+          className={cn("flex-shrink-0", (overdue || pct >= 90) && "animate-ring-glow")}
+          style={{ transform: "rotate(-90deg)" }}
         >
-          <div
-            className={cn(
-              "h-full rounded-full",
-              fillColor,
-              overdue && "animate-pulse-danger",
-              critical && "animate-shake-bar"
-            )}
-            style={{ width: `${clampedPct}%`, transition: "width 1.5s ease-out" }}
+          {/* Track */}
+          <circle
+            cx="14" cy="14" r={r}
+            fill="none" stroke="currentColor" strokeWidth="2.5"
+            className="text-slate-200 dark:text-slate-700"
           />
+          {/* Progress */}
+          <circle
+            cx="14" cy="14" r={r}
+            fill="none"
+            stroke={strokeColor}
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeDasharray={circ}
+            strokeDashoffset={dashOffset}
+            style={{ transition: "stroke-dashoffset 1.5s ease-out, stroke 0.5s ease" }}
+          />
+        </svg>
+        <div className="flex-1 min-w-0">
+          <span className={cn("text-[10px] font-mono font-medium tabular-nums block leading-tight", textCls)}>
+            {remaining}
+          </span>
+          <span className="text-[9px] font-mono text-slate-400 dark:text-slate-500">
+            {overdue ? "süre doldu" : `%${Math.round(clampedPct)} geçti`}
+          </span>
         </div>
-        <span className={cn("text-[9px] font-mono tabular-nums flex-shrink-0 w-10 text-right", labelColor)}>
-          {overdue ? "GECİKTİ" : `%${Math.round(clampedPct)}`}
-        </span>
       </div>
     </div>
   )
@@ -314,9 +337,9 @@ export default function TaskCard({ task, overlay = false, settled = false }: Tas
           )}
         </div>
 
-        {/* Hourglass time progress — only when both due_date and due_time exist */}
+        {/* Circular ring timer — only when both due_date and due_time exist */}
         {task.due_date && task.due_time && !isDragging && (
-          <HourglassBar task={task} />
+          <HourglassRing task={task} />
         )}
       </motion.div>
     </div>

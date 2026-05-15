@@ -71,6 +71,7 @@ export async function GET(req: Request) {
   const defaultPrefs: Record<string, { reminder_times: number[]; notification_hour: number }> = {
     emin:  { reminder_times: [24, 1], notification_hour: 8 },
     emre:  { reminder_times: [24, 1], notification_hour: 8 },
+    tuna:  { reminder_times: [24, 1], notification_hour: 8 },
   }
 
   const userPrefs: Record<string, { reminder_times: number[]; notification_hour: number }> = {
@@ -108,11 +109,11 @@ export async function GET(req: Request) {
   if (!tasks?.length) return NextResponse.json({ ok: true, checked: 0, sent: 0 })
 
   let sent = 0
-  const ownerLabel: Record<string, string> = { emin: "Emin", emre: "Emre", shared: "Ortak" }
+  const ownerLabel: Record<string, string> = { emin: "Emin", emre: "Emre", tuna: "Tuna", shared: "Ortak" }
 
   for (const task of tasks) {
     const taskOwners: string[] =
-      task.owner === "shared" ? ["emin", "emre"] : [task.owner as string]
+      task.owner === "shared" ? ["emin", "emre", "tuna"] : [task.owner as string]
 
     for (const owner of taskOwners) {
       const pref = userPrefs[owner]

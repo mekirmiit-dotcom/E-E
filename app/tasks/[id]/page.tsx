@@ -19,7 +19,7 @@ import { cn } from "@/lib/utils"
 import {
   getTask, updateTask, deleteTask,
   PRIORITY_COLORS, PRIORITY_LABELS, STATUS_LABELS, OWNER_LABELS,
-  TASK_COLORS, isOverdue, isDueSoon,
+  TASK_COLORS, REMINDER_OPTIONS, isOverdue, isDueSoon,
 } from "@/lib/tasks"
 import type { Task, Owner, Priority, Status, ChecklistItem, Comment } from "@/lib/supabase"
 import { createNotification } from "@/lib/notifications"
@@ -50,6 +50,7 @@ export default function TaskDetailPage({ params }: { params: { id: string } }) {
   const [tags, setTags] = useState<string[]>([])
   const [checklist, setChecklist] = useState<ChecklistItem[]>([])
   const [color, setColor] = useState<string | null>(null)
+  const [reminderOffsets, setReminderOffsets] = useState<number[]>([])
 
   // Comments state — default author from logged-in user
   const [comments, setComments] = useState<Comment[]>([])
@@ -108,6 +109,7 @@ export default function TaskDetailPage({ params }: { params: { id: string } }) {
     setTags(t.tags)
     setChecklist(t.checklist)
     setColor(t.color || null)
+    setReminderOffsets(t.reminder_offsets ?? [])
   }
 
   function cancelEdit() {
@@ -139,6 +141,7 @@ export default function TaskDetailPage({ params }: { params: { id: string } }) {
       due_date: dueDate || null,
       due_time: dueTime || null,
       tags, checklist, color,
+      reminder_offsets: reminderOffsets.length > 0 ? reminderOffsets : null,
     })
     setSaving(false)
     if (!updated) return
@@ -427,6 +430,45 @@ export default function TaskDetailPage({ params }: { params: { id: string } }) {
                   className="text-sm disabled:opacity-40"
                 />
               </div>
+
+              {/* Hatırlatıcı — sadece saat de girilmişse */}
+              {dueDate && dueTime && (
+                <div className="col-span-2 pt-1 border-t border-slate-100 dark:border-slate-700">
+                  <Label className="mb-2 block text-xs">
+                    🔔 Hatırlatıcı <span className="text-slate-400 font-normal normal-case">· bildirim zamanları</span>
+                  </Label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {REMINDER_OPTIONS.map(({ value, label }) => {
+                      const active = reminderOffsets.includes(value)
+                      return (
+                        <button
+                          key={value}
+                          type="button"
+                          onClick={() =>
+                            setReminderOffsets((prev) =>
+                              prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value]
+                            )
+                          }
+                          className={cn(
+                            "text-[11px] px-2.5 py-1 rounded-lg border font-medium transition-all",
+                            active
+                              ? "bg-indigo-600 text-white border-indigo-600"
+                              : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-indigo-300 dark:hover:border-indigo-700"
+                          )}
+                        >
+                          {label}
+                        </button>
+                      )
+                    })}
+                  </div>
+                  {reminderOffsets.length > 0 && (
+                    <p className="text-[10px] text-indigo-600 dark:text-indigo-400 mt-1.5">
+                      Seçili: {reminderOffsets.sort((a, b) => a - b).map((v) => REMINDER_OPTIONS.find((r) => r.value === v)?.label).join(", ")} önce bildirim gelecek
+                    </p>
+                  )}
+                </div>
+              )}
+
               <div className="col-span-2">
                 <Label className="mb-2 block text-xs">Kart Rengi <span className="text-slate-400 font-normal normal-case">· isteğe bağlı</span></Label>
                 <div className="flex flex-wrap gap-2 items-center">
@@ -488,6 +530,19 @@ export default function TaskDetailPage({ params }: { params: { id: string } }) {
                   <span className="ml-auto text-xs text-muted-foreground font-mono">—</span>
                 )}
               </div>
+              {task.reminder_offsets && task.reminder_offsets.length > 0 && (
+                <div className="col-span-2 flex items-center gap-2 pt-1 border-t border-slate-100 dark:border-slate-700">
+                  <span className="text-xs">🔔</span>
+                  <span className="text-xs text-muted-foreground font-body">Hatırlatıcı</span>
+                  <div className="ml-auto flex flex-wrap gap-1 justify-end">
+                    {task.reminder_offsets.sort((a, b) => a - b).map((v) => (
+                      <span key={v} className="text-[10px] font-mono px-1.5 py-0.5 rounded-md bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-800">
+                        {REMINDER_OPTIONS.find((r) => r.value === v)?.label ?? `${v}dk`}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>

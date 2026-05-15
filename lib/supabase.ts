@@ -43,6 +43,7 @@ export type Task = {
   order_index: number
   notes?: string | null
   color?: string | null
+  reminder_offsets?: number[] | null // dakika cinsinden: [5, 30, 60, ...]
 }
 
 export type ChecklistItem = {

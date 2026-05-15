@@ -63,6 +63,16 @@ export const OWNER_LABELS: Record<Owner, string> = {
   emin: "Emin", emre: "Emre", tuna: "Tuna", shared: "Ortak",
 }
 
+export const REMINDER_OPTIONS = [
+  { value: 5,   label: "5dk",  desc: "5 dakika önce" },
+  { value: 10,  label: "10dk", desc: "10 dakika önce" },
+  { value: 15,  label: "15dk", desc: "15 dakika önce" },
+  { value: 30,  label: "30dk", desc: "30 dakika önce" },
+  { value: 60,  label: "1sa",  desc: "1 saat önce" },
+  { value: 120, label: "2sa",  desc: "2 saat önce" },
+  { value: 180, label: "3sa",  desc: "3 saat önce" },
+]
+
 export const TASK_COLORS = [
   { id: "red",    label: "Kırmızı",  hex: "#ef4444" },
   { id: "orange", label: "Turuncu",  hex: "#f97316" },

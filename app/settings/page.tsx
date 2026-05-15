@@ -8,7 +8,7 @@ import { supabase } from "@/lib/supabase"
 import { useCurrentUser } from "@/lib/auth"
 import Link from "next/link"
 
-type Owner = "emin" | "emre"
+type Owner = "emin" | "emre" | "tuna"
 
 type Prefs = {
   reminder_times: number[]
@@ -32,6 +32,7 @@ export default function SettingsPage() {
   const [prefs, setPrefs] = useState<Record<Owner, Prefs>>({
     emin: { ...DEFAULT_PREFS },
     emre: { ...DEFAULT_PREFS },
+    tuna: { ...DEFAULT_PREFS },
   })
   const { user: currentUser } = useCurrentUser()
   const [saving, setSaving] = useState(false)
@@ -43,7 +44,7 @@ export default function SettingsPage() {
       const { data } = await supabase
         .from("user_preferences")
         .select("*")
-        .in("user", ["emin", "emre"])
+        .in("user", ["emin", "emre", "tuna"])
 
       if (data?.length) {
         const next = { ...prefs }
@@ -75,7 +76,7 @@ export default function SettingsPage() {
 
   async function handleSave() {
     setSaving(true)
-    for (const user of ["emin", "emre"] as Owner[]) {
+    for (const user of ["emin", "emre", "tuna"] as Owner[]) {
       const p = prefs[user]
       await supabase
         .from("user_preferences")
@@ -119,26 +120,36 @@ export default function SettingsPage() {
 
         {/* Kullanıcı seçici */}
         <div className="flex gap-2 p-1 bg-slate-100 dark:bg-slate-800 rounded-2xl">
-          {(["emin", "emre"] as Owner[]).map((u) => (
-            <button
-              key={u}
-              onClick={() => setActiveUser(u)}
-              className={cn(
-                "flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all",
-                activeUser === u
-                  ? u === "emin"
-                    ? "bg-white dark:bg-slate-900 text-indigo-700 dark:text-indigo-300 shadow-sm"
-                    : "bg-white dark:bg-slate-900 text-amber-700 dark:text-amber-300 shadow-sm"
-                  : "text-slate-500 dark:text-slate-400 hover:text-slate-700"
-              )}
-            >
-              <div className={cn(
-                "w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold",
-                u === "emin" ? "bg-gradient-to-br from-indigo-400 to-indigo-600" : "bg-gradient-to-br from-amber-400 to-amber-600"
-              )}>E</div>
-              {u === "emin" ? "Emin" : "Emre"}
-            </button>
-          ))}
+          {(["emin", "emre", "tuna"] as Owner[]).map((u) => {
+            const activeColor =
+              u === "emin" ? "text-indigo-700 dark:text-indigo-300"
+              : u === "emre" ? "text-amber-700 dark:text-amber-300"
+              : "text-cyan-700 dark:text-cyan-300"
+            const avatarGradient =
+              u === "emin" ? "from-indigo-400 to-indigo-600"
+              : u === "emre" ? "from-amber-400 to-amber-600"
+              : "from-cyan-400 to-cyan-600"
+            const initial = u === "tuna" ? "T" : "E"
+            const label = u === "emin" ? "Emin" : u === "emre" ? "Emre" : "Tuna"
+            return (
+              <button
+                key={u}
+                onClick={() => setActiveUser(u)}
+                className={cn(
+                  "flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all",
+                  activeUser === u
+                    ? cn("bg-white dark:bg-slate-900 shadow-sm", activeColor)
+                    : "text-slate-500 dark:text-slate-400 hover:text-slate-700"
+                )}
+              >
+                <div className={cn(
+                  "w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold bg-gradient-to-br",
+                  avatarGradient
+                )}>{initial}</div>
+                {label}
+              </button>
+            )
+          })}
         </div>
 
         {/* Hatırlatıcı zamanları */}
@@ -252,7 +263,7 @@ export default function SettingsPage() {
         {/* Kaydet */}
         <button
           onClick={handleSave}
-          disabled={saving || prefs.emin.reminder_times.length === 0 || prefs.emre.reminder_times.length === 0}
+          disabled={saving || prefs.emin.reminder_times.length === 0 || prefs.emre.reminder_times.length === 0 || prefs.tuna.reminder_times.length === 0}
           className={cn(
             "w-full flex items-center justify-center gap-2 py-3 rounded-2xl text-sm font-semibold transition-all",
             saved

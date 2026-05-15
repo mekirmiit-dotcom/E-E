@@ -20,7 +20,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { cn } from "@/lib/utils"
-import { createTask, OWNER_LABELS, TASK_COLORS } from "@/lib/tasks"
+import { createTask, OWNER_LABELS, TASK_COLORS, REMINDER_OPTIONS } from "@/lib/tasks"
 import type { Owner, Priority, Status, ChecklistItem } from "@/lib/supabase"
 import { createNotification } from "@/lib/notifications"
 import { format, parseISO } from "date-fns"
@@ -44,11 +44,13 @@ interface WizardData {
   tags: string[]
   checklist: ChecklistItem[]
   color: string | null
+  reminder_offsets: number[]
 }
 
 const DEFAULT_DATA: WizardData = {
   title: "", description: "", owner: "shared", priority: "medium",
   status: "todo", due_date: "", due_time: "", tags: [], checklist: [], color: null,
+  reminder_offsets: [],
 }
 
 interface TaskWizardProps { defaultOwner?: Owner }
@@ -94,6 +96,7 @@ export default function TaskWizard({ defaultOwner }: TaskWizardProps) {
       due_time: data.due_time || null,
       tags: data.tags, checklist: data.checklist,
       color: data.color, order_index: 999,
+      reminder_offsets: data.reminder_offsets.length > 0 ? data.reminder_offsets : null,
     })
     if (!task) {
       console.error("[TaskWizard] createTask failed")
@@ -339,10 +342,51 @@ export default function TaskWizard({ defaultOwner }: TaskWizardProps) {
                       className="h-12 rounded-xl text-sm"
                     />
                     {data.due_time && (
-                      <p className="text-[11px] text-indigo-600 dark:text-indigo-400 mt-1.5 flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        Kum saati sayacı aktif olacak
-                      </p>
+                      <>
+                        <p className="text-[11px] text-indigo-600 dark:text-indigo-400 mt-1.5 flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          Halka sayacı aktif olacak
+                        </p>
+                        {/* Hatırlatıcı seçici */}
+                        <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-700">
+                          <p className="text-xs font-semibold text-slate-900 dark:text-slate-100 uppercase tracking-wider mb-2">
+                            🔔 Hatırlatıcı <span className="text-slate-500 dark:text-slate-400 normal-case font-normal">· isteğe bağlı</span>
+                          </p>
+                          <div className="flex flex-wrap gap-1.5">
+                            {REMINDER_OPTIONS.map(({ value, label, desc }) => {
+                              const active = data.reminder_offsets.includes(value)
+                              return (
+                                <button
+                                  key={value}
+                                  type="button"
+                                  title={desc}
+                                  onClick={() =>
+                                    update(
+                                      "reminder_offsets",
+                                      active
+                                        ? data.reminder_offsets.filter((v) => v !== value)
+                                        : [...data.reminder_offsets, value]
+                                    )
+                                  }
+                                  className={cn(
+                                    "text-xs px-3 py-1.5 rounded-xl border font-medium transition-all",
+                                    active
+                                      ? "bg-indigo-600 text-white border-indigo-600 shadow-sm"
+                                      : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-indigo-300 dark:hover:border-indigo-700 bg-white dark:bg-slate-800"
+                                  )}
+                                >
+                                  {label}
+                                </button>
+                              )
+                            })}
+                          </div>
+                          {data.reminder_offsets.length > 0 && (
+                            <p className="text-[11px] text-indigo-600 dark:text-indigo-400 mt-2">
+                              {data.reminder_offsets.sort((a, b) => a - b).map((v) => REMINDER_OPTIONS.find((r) => r.value === v)?.label).join(", ")} önce bildirim gelecek
+                            </p>
+                          )}
+                        </div>
+                      </>
                     )}
                   </div>
                 )}
